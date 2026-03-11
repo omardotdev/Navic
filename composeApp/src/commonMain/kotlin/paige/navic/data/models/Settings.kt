@@ -196,7 +196,8 @@ internal inline fun <reified E : Enum<E>> com.russhwolf.settings.Settings.putEnu
 class Settings(
 	settings: com.russhwolf.settings.Settings
 ) : BasePreferenceManager(settings) {
-	var useSystemFont by preference(false)
+	var font by preference(FontOption.GoogleSans)
+	var fontPath by preference("")
 	var animatePlayerBackground by preference(true)
 	var detachedBar by preference(true)
 	var autoHideBar by preference(true)
@@ -241,6 +242,14 @@ class Settings(
 		val shared = Settings(
 			com.russhwolf.settings.Settings()
 		)
+	}
+
+	enum class FontOption {
+		System,
+		GoogleSans,
+		NotoSans,
+		Inter,
+		Custom
 	}
 
 	enum class MarqueeSpeed(val value: Int) {
