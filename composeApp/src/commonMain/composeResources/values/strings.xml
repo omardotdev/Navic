@@ -84,6 +84,9 @@
 	<string name="option_playlist_songs">Songs</string>
 	<string	name="option_enable_scrobbling">Enable Scrobbling</string>
 	<string name="option_choose_theme">Choose theme</string>
+	<string name="option_now_playing_toolbar_position">Toolbar position</string>
+	<string name="option_position_top">Top</string>
+	<string name="option_position_bottom">Bottom</string>
 
 	<string name="theme_dynamic">Dynamic</string>
 	<string name="theme_subtitle_dynamic">Available on Android 12 and above</string>

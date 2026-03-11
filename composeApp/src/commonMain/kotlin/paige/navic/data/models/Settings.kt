@@ -21,6 +21,8 @@ import com.russhwolf.settings.get
 import com.russhwolf.settings.set
 import dev.zt64.compose.pipette.HsvColor
 import navic.composeapp.generated.resources.Res
+import navic.composeapp.generated.resources.option_position_bottom
+import navic.composeapp.generated.resources.option_position_top
 import navic.composeapp.generated.resources.theme_apple_music
 import navic.composeapp.generated.resources.theme_dynamic
 import navic.composeapp.generated.resources.theme_ios
@@ -220,6 +222,7 @@ class Settings(
 	var windowSizeX by preference(800f)
 	var windowSizeY by preference(600f)
 	var listType by preference(ListType.ALPHABETICAL_BY_ARTIST)
+	var nowPlayingToolbarPosition by preference(ToolbarPosition.Bottom)
 
 	/**
 	 * If we have informed the user (on Android) about
@@ -347,5 +350,10 @@ class Settings(
 			Seeded -> true
 			else -> false
 		}
+	}
+
+	enum class ToolbarPosition(val displayName: StringResource) {
+		Top(Res.string.option_position_top),
+		Bottom(Res.string.option_position_bottom)
 	}
 }
