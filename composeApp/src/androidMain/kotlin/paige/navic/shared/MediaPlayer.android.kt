@@ -60,6 +60,7 @@ class PlaybackService : MediaSessionService() {
 
 		val player = ExoPlayer.Builder(this)
 			.setLoadControl(loadControl)
+			.setHandleAudioBecomingNoisy(true)
 			.build()
 			.apply {
 				setAudioAttributes(
@@ -242,7 +243,7 @@ class AndroidMediaPlayerViewModel(
 
 		if (state.queue.isEmpty() || player.mediaItemCount > 0) return
 
-		val mediaItems = state.queue.map { it.toMediaItem(false) }
+		val mediaItems = state.queue.map { it.toMediaItem() }
 
 		player.setMediaItems(mediaItems)
 
@@ -285,7 +286,7 @@ class AndroidMediaPlayerViewModel(
 	}
 
 	override fun addToQueueSingle(track: Track) {
-		controller?.addMediaItem(track.toMediaItem(true))
+		controller?.addMediaItem(track.toMediaItem())
 		_uiState.update { it.copy(
 			queue = it.queue + track,
 			currentIndex = it.queue.indexOf(it.currentTrack),
@@ -294,7 +295,7 @@ class AndroidMediaPlayerViewModel(
 	}
 
 	override fun addToQueue(tracks: TrackCollection) {
-		val items = tracks.tracks.map { it.toMediaItem(false) }
+		val items = tracks.tracks.map { it.toMediaItem() }
 		controller?.addMediaItems(items)
 		_uiState.update { it.copy(
 			queue = it.queue + tracks.tracks,
@@ -346,7 +347,7 @@ class AndroidMediaPlayerViewModel(
 
 	override fun shufflePlay(tracks: TrackCollection) {
 		val shuffledTracks = tracks.tracks.shuffled()
-		val mediaItems = shuffledTracks.map { it.toMediaItem(false) }
+		val mediaItems = shuffledTracks.map { it.toMediaItem() }
 
 		controller?.let { player ->
 			player.shuffleModeEnabled = false
@@ -402,15 +403,13 @@ class AndroidMediaPlayerViewModel(
 		controllerFuture?.let { MediaController.releaseFuture(it) }
 	}
 
-	private fun Track.toMediaItem(single: Boolean): MediaItem {
+	private fun Track.toMediaItem(): MediaItem {
 		val metadata = MediaMetadata.Builder()
 			.setTitle(title)
 			.setArtist(artist)
 			.setAlbumTitle(album)
 			.setArtworkUri(
-				if (single)
-					coverArt?.toUri()
-				else SessionManager.api.getCoverArtUrl(coverArt, auth = true)?.toUri()
+				SessionManager.api.getCoverArtUrl(coverArt, auth = true)?.toUri()
 			)
 			.build()
 
