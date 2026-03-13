@@ -1,5 +1,6 @@
 package paige.navic.ui.viewmodels
 
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.zt64.subsonic.api.model.Album
@@ -35,6 +36,8 @@ open class AlbumsViewModel(
 
 	private val _listType = MutableStateFlow(initialListType ?: AlbumListType.AlphabeticalByArtist)
 	val listType = _listType.asStateFlow()
+
+	val gridState = LazyGridState()
 
 	init {
 		viewModelScope.launch {

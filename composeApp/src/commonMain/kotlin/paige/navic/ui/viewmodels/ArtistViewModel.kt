@@ -1,5 +1,6 @@
 package paige.navic.ui.viewmodels
 
+import androidx.compose.foundation.ScrollState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.zt64.subsonic.api.model.Artist
@@ -14,7 +15,8 @@ import paige.navic.utils.UiState
 data class ArtistState(
 	val artist: Artist,
 	val topSongs: List<Song>,
-	val info: ArtistInfo
+	val info: ArtistInfo,
+	val similarArtists: List<Artist>
 )
 
 class ArtistViewModel(
@@ -23,16 +25,23 @@ class ArtistViewModel(
 	private val _artistState = MutableStateFlow<UiState<ArtistState>>(UiState.Loading)
 	val artistState = _artistState.asStateFlow()
 
+	val scrollState = ScrollState(initial = 0)
+
 	init {
 		viewModelScope.launch {
 			try {
-				val artist = SessionManager.api.getArtist(artistId)!!
+				val artist = SessionManager.api.getArtist(artistId)
 				val topSongs = SessionManager.api.getTopSongs(artist)
 				val artistInfo = SessionManager.api.getArtistInfo(artist)
+				val similarArtists = artistInfo.similarArtists.map {
+					// albumCount is 0 unless you do getArtist on each one
+					SessionManager.api.getArtist(it.id)
+				}
 				_artistState.value = UiState.Success(ArtistState(
 					artist,
 					topSongs,
-					artistInfo
+					artistInfo,
+					similarArtists
 				))
 			} catch (e: Exception) {
 				_artistState.value = UiState.Error(e)

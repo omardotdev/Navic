@@ -7,8 +7,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,7 +15,6 @@ import androidx.compose.material3.Snackbar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -35,7 +32,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalUriHandler
@@ -69,8 +65,6 @@ import paige.navic.shared.rememberCtx
 import paige.navic.shared.rememberMediaPlayer
 import paige.navic.shared.rememberShareManager
 import paige.navic.ui.components.dialogs.SideloadingDialog
-import paige.navic.ui.components.layouts.BottomBar
-import paige.navic.ui.components.layouts.PlayerBar
 import paige.navic.ui.navigation.Material3Transitions
 import paige.navic.ui.scenes.BottomSheetSceneStrategy
 import paige.navic.ui.screens.AddToPlaylistScreen
@@ -98,7 +92,6 @@ import paige.navic.ui.screens.settings.SettingsBehaviourScreen
 import paige.navic.ui.screens.settings.SettingsScreen
 import paige.navic.ui.theme.NavicTheme
 import paige.navic.utils.checkForUpdate
-import paige.navic.utils.easedVerticalGradient
 
 @OptIn(ExperimentalSerializationApi::class)
 private val config = SavedStateConfiguration {
@@ -115,8 +108,8 @@ val LocalNavStack = staticCompositionLocalOf<NavBackStack<NavKey>> { error("no b
 val LocalImageBuilder = staticCompositionLocalOf<ImageRequest.Builder> { error("no image builder") }
 val LocalSnackbarState = staticCompositionLocalOf<SnackbarHostState> { error("no snackbar state") }
 val LocalShareManager = staticCompositionLocalOf<ShareManager> { error("no share manager") }
-val LocalContentPadding = staticCompositionLocalOf { PaddingValues() }
-val LocalSharedTransitionScope = staticCompositionLocalOf<SharedTransitionScope> { error("no shared transition scope") }
+val LocalSharedTransitionScope =
+	staticCompositionLocalOf<SharedTransitionScope> { error("no shared transition scope") }
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -126,7 +119,6 @@ fun App() {
 	val uriHandler = LocalUriHandler.current
 	val ctx = rememberCtx()
 	val mediaPlayer = rememberMediaPlayer()
-	val playerState by mediaPlayer.uiState.collectAsState()
 	val backStack = rememberNavBackStack(config, Screen.Library())
 	val imageBuilder = remember { ImageRequest.Builder(platformContext).crossfade(true) }
 	val snackbarState = remember { SnackbarHostState() }
@@ -135,7 +127,7 @@ fun App() {
 	// todo: this should survive config changes but im lazy ykyk
 	LaunchedEffect(Unit) {
 		checkForUpdate(ctx.appVersion)?.let { newRelease ->
- 			val result = snackbarState.showSnackbar(
+			val result = snackbarState.showSnackbar(
 				message = getString(Res.string.info_update_app),
 				actionLabel = getString(Res.string.action_update_app),
 				withDismissAction = true,
@@ -147,16 +139,17 @@ fun App() {
 		}
 	}
 
-	CompositionLocalProvider(
-		LocalCtx provides ctx,
-		LocalMediaPlayer provides mediaPlayer,
-		LocalNavStack provides backStack,
-		LocalImageBuilder provides imageBuilder,
-		LocalSnackbarState provides snackbarState,
-		LocalShareManager provides shareManager
-	) {
-		NavicTheme {
-			SharedTransitionLayout {
+	SharedTransitionLayout {
+		CompositionLocalProvider(
+			LocalCtx provides ctx,
+			LocalMediaPlayer provides mediaPlayer,
+			LocalNavStack provides backStack,
+			LocalImageBuilder provides imageBuilder,
+			LocalSnackbarState provides snackbarState,
+			LocalShareManager provides shareManager,
+			LocalSharedTransitionScope provides this@SharedTransitionLayout
+		) {
+			NavicTheme {
 				Scaffold(
 					snackbarHost = {
 						SnackbarHost(hostState = snackbarState) { snackbarData ->
@@ -165,64 +158,45 @@ fun App() {
 								shape = MaterialTheme.shapes.large
 							)
 						}
-					},
-					bottomBar = {
-						val isVisible = !Settings.shared.autoHideBar || playerState.queue.isNotEmpty()
-						Column(
-							modifier = if (Settings.shared.detachedBar)
-								Modifier.background(
-									Brush.easedVerticalGradient(color = MaterialTheme.colorScheme.surface)
-								)
-							else Modifier
-						) {
-							if (isVisible) PlayerBar()
-							BottomBar(
-								containerColor = if (Settings.shared.detachedBar && isVisible)
-									NavigationBarDefaults.containerColor.copy(alpha = 0f)
-								else NavigationBarDefaults.containerColor
-							)
-						}
 					}
 				) { contentPadding ->
-					CompositionLocalProvider(
-						LocalContentPadding provides contentPadding,
-						LocalSharedTransitionScope provides this@SharedTransitionLayout
-					) {
-						NavDisplay(
-							modifier = Modifier
-								.padding(
-									start = contentPadding.calculateStartPadding(
-										LocalLayoutDirection.current
-									),
-									end = contentPadding.calculateEndPadding(LocalLayoutDirection.current)
+					NavDisplay(
+						modifier = Modifier
+							.padding(
+								start = contentPadding.calculateStartPadding(
+									LocalLayoutDirection.current
+								),
+								end = contentPadding.calculateEndPadding(
+									LocalLayoutDirection.current
 								)
-								.fillMaxSize()
-								.background(MaterialTheme.colorScheme.surface),
-							backStack = backStack,
-							sceneStrategy = remember { BottomSheetSceneStrategy<NavKey>() }
-								then remember { DialogSceneStrategy() }
-								then rememberListDetailSceneStrategy(),
-							onBack = { backStack.removeLastOrNull() },
-							entryProvider = entryProvider(backStack),
-							transitionSpec = {
-								Material3Transitions.SharedXAxisEnterTransition(density) togetherWith Material3Transitions.SharedXAxisExitTransition(
-									density
-								)
-							},
-							popTransitionSpec = {
-								Material3Transitions.SharedXAxisPopEnterTransition(density) togetherWith Material3Transitions.SharedXAxisPopExitTransition(
-									density
-								)
-							},
-							predictivePopTransitionSpec = {
-								Material3Transitions.SharedZAxisEnterTransition togetherWith Material3Transitions.SharedZAxisExitTransition
-							}
-						)
-					}
+							)
+							.fillMaxSize()
+							.background(MaterialTheme.colorScheme.surface),
+						backStack = backStack,
+						sceneStrategy = remember { BottomSheetSceneStrategy<NavKey>() }
+							then remember { DialogSceneStrategy() }
+							then rememberListDetailSceneStrategy(),
+						onBack = { backStack.removeLastOrNull() },
+						entryProvider = entryProvider(backStack),
+						transitionSpec = {
+							Material3Transitions.SharedXAxisEnterTransition(density) togetherWith Material3Transitions.SharedXAxisExitTransition(
+								density
+							)
+						},
+						popTransitionSpec = {
+							Material3Transitions.SharedXAxisPopEnterTransition(density) togetherWith Material3Transitions.SharedXAxisPopExitTransition(
+								density
+							)
+						},
+						predictivePopTransitionSpec = {
+							Material3Transitions.SharedZAxisEnterTransition togetherWith Material3Transitions.SharedZAxisExitTransition
+						}
+					)
 				}
 			}
 			if (!Settings.shared.showedSideloadingWarning
-				&& ctx.name.lowercase().contains("android")) {
+				&& ctx.name.lowercase().contains("android")
+			) {
 				SideloadingDialog()
 			}
 		}
@@ -258,10 +232,12 @@ private fun entryProvider(
 		}
 
 		// misc
-		entry<Screen.Player>(metadata = BottomSheetSceneStrategy.bottomSheet(
-			maxWidth = Dp.Unspecified,
-			screenType = "player"
-		)) {
+		entry<Screen.Player>(
+			metadata = BottomSheetSceneStrategy.bottomSheet(
+				maxWidth = Dp.Unspecified,
+				screenType = "player"
+			)
+		) {
 			PlayerScreen()
 		}
 		entry<Screen.Lyrics>(metadata = BottomSheetSceneStrategy.bottomSheet(isTransparent = true)) {
@@ -276,7 +252,7 @@ private fun entryProvider(
 		entry<Screen.Tracks>(metadata = detailPane("root")) { key ->
 			TracksScreen(key.partialCollection, key.tab)
 		}
-		entry<Screen.TrackInfo> { key ->
+		entry<Screen.TrackInfo>(metadata = detailPane("root")) { key ->
 			TrackInfoScreen(key.track)
 		}
 		entry<Screen.Search>(metadata = navtabMetadata) { key ->
@@ -285,7 +261,7 @@ private fun entryProvider(
 		entry<Screen.Shares> {
 			SharesScreen()
 		}
-		entry<Screen.Artist>(metadata = detailPane("root")) { key ->
+		entry<Screen.Artist> { key ->
 			ArtistScreen(key.artist)
 		}
 		entry<Screen.AddToPlaylist>(metadata = DialogSceneStrategy.dialog()) { key ->

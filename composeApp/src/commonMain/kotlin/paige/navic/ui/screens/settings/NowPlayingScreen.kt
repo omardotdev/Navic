@@ -2,9 +2,7 @@ package paige.navic.ui.screens.settings
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.rememberScrollState
@@ -31,7 +29,6 @@ import navic.composeapp.generated.resources.option_use_wavy_slider
 import navic.composeapp.generated.resources.subtitle_lyrics_beat_by_beat
 import navic.composeapp.generated.resources.title_now_playing
 import org.jetbrains.compose.resources.stringResource
-import paige.navic.LocalContentPadding
 import paige.navic.LocalCtx
 import paige.navic.data.models.Settings
 import paige.navic.ui.components.common.Form
@@ -118,7 +115,6 @@ fun NowPlayingScreen() {
 						Text(stringResource(Res.string.option_lyrics_priority))
 					}
 				}
-				Spacer(Modifier.height(LocalContentPadding.current.calculateBottomPadding()))
 			}
 		}
 		LyricsPriorityDialog(

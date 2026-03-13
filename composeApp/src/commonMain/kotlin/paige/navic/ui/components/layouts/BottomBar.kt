@@ -2,6 +2,7 @@ package paige.navic.ui.components.layouts
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -91,6 +92,7 @@ private enum class NavItem(
 fun BottomBar(
 	modifier: Modifier = Modifier,
 	containerColor: Color = NavigationBarDefaults.containerColor,
+	windowInsets: WindowInsets = NavigationBarDefaults.windowInsets,
 	viewModel: NavtabsViewModel = viewModel { NavtabsViewModel(com.russhwolf.settings.Settings(), Json) }
 ) {
 	val backStack = LocalNavStack.current
@@ -107,7 +109,8 @@ fun BottomBar(
 		if (it) {
 			NavigationBar(
 				modifier = modifier,
-				containerColor = containerColor
+				containerColor = containerColor,
+				windowInsets = windowInsets
 			) {
 				tabs.forEach { tab ->
 					val item = when (tab.id) {

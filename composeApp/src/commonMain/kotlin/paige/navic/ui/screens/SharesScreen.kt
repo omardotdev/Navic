@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -62,11 +61,9 @@ import navic.composeapp.generated.resources.info_share_expired
 import navic.composeapp.generated.resources.info_share_expires_in
 import navic.composeapp.generated.resources.info_share_expires_never
 import navic.composeapp.generated.resources.info_shared_by
-import navic.composeapp.generated.resources.info_unknown_share
 import navic.composeapp.generated.resources.title_shares
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
-import paige.navic.LocalContentPadding
 import paige.navic.LocalCtx
 import paige.navic.LocalShareManager
 import paige.navic.LocalSnackbarState
@@ -85,9 +82,9 @@ import paige.navic.ui.components.layouts.artGridError
 import paige.navic.ui.viewmodels.SharesViewModel
 import paige.navic.utils.UiState
 import paige.navic.utils.toHoursMinutesSeconds
+import paige.navic.utils.withoutTop
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.Instant
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -102,26 +99,24 @@ fun SharesScreen(
 	Scaffold(
 		topBar = { NestedTopBar({ Text(stringResource(Res.string.title_shares)) }) },
 		contentWindowInsets = WindowInsets.statusBars
-	) { innerPadding ->
+	) { contentPadding ->
 		PullToRefreshBox(
 			modifier = Modifier
-				.padding(innerPadding)
+				.padding(top = contentPadding.calculateTopPadding())
 				.background(MaterialTheme.colorScheme.surface),
 			isRefreshing = isRefreshing || sharesState is UiState.Loading,
 			onRefresh = { viewModel.refreshShares() }
 		) {
-			Crossfade(sharesState::class) {
+			Crossfade(sharesState) { state ->
 				LazyVerticalGrid(
 					modifier = Modifier
 						.fillMaxSize()
 						.nestedScroll(scrollBehavior.nestedScrollConnection),
 					columns = GridCells.Fixed(1),
-					contentPadding = PaddingValues(
-						top = 16.dp,
-						bottom = LocalContentPadding.current.calculateBottomPadding(),
-					)
+					contentPadding = contentPadding.withoutTop(),
+					state = viewModel.gridState
 				) {
-					when (val state = sharesState) {
+					when (state) {
 						is UiState.Loading -> { return@LazyVerticalGrid }
 						is UiState.Error -> artGridError(state)
 						is UiState.Success -> {

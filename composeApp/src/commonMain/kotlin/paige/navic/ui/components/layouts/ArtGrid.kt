@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.plus
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
@@ -36,7 +37,6 @@ import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import com.kyant.capsule.ContinuousRoundedRectangle
-import paige.navic.LocalContentPadding
 import paige.navic.LocalCtx
 import paige.navic.LocalImageBuilder
 import paige.navic.LocalSharedTransitionScope
@@ -52,6 +52,7 @@ import paige.navic.utils.shimmerLoading
 fun ArtGrid(
 	modifier: Modifier = Modifier,
 	state: LazyGridState = rememberLazyGridState(),
+	contentPadding: PaddingValues,
 	content: LazyGridScope.() -> Unit
 ) {
 	val ctx = LocalCtx.current
@@ -62,11 +63,10 @@ fun ArtGrid(
 		columns = if (ctx.sizeClass.widthSizeClass <= WindowWidthSizeClass.Compact)
 			GridCells.Fixed(Settings.shared.gridSize.value)
 		else GridCells.Adaptive(artGridItemSize.dp),
-		contentPadding = PaddingValues(
+		contentPadding = contentPadding + PaddingValues(
 			start = 16.dp,
 			top = 16.dp,
-			end = 16.dp,
-			bottom = LocalContentPadding.current.calculateBottomPadding(),
+			end = 16.dp
 		),
 		verticalArrangement = Arrangement.spacedBy(12.dp),
 		horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -77,7 +77,7 @@ fun ArtGrid(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ArtGridItem(
-	imageModifier: Modifier = Modifier,
+	modifier: Modifier = Modifier,
 	onClick: () -> Unit,
 	onLongClick: (() -> Unit)? = null,
 	coverArt: String?,
@@ -112,6 +112,7 @@ fun ArtGridItem(
 					onLongClick = onLongClick
 				)
 				.onRightClick { onLongClick?.invoke() }
+				.then(modifier)
 		) {
 			AsyncImage(
 				model = model,
@@ -129,7 +130,6 @@ fun ArtGridItem(
 					)
 					.indication(interactionSource, ripple())
 					.background(MaterialTheme.colorScheme.surfaceContainer)
-					.then(imageModifier)
 			)
 			Text(
 				text = title,

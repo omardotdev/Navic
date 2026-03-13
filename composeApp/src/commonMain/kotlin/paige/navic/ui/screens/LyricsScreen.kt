@@ -32,7 +32,6 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -92,8 +91,6 @@ import paige.navic.utils.rememberTrackPainter
 import kotlin.math.abs
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -128,13 +125,13 @@ fun LyricsScreen(
 	}
 
 	val track = track ?: return placeholder()
-	val duration = track.duration ?: return placeholder()
+	val duration = track.duration
 
 	val progressState = playerState.progress
 	val currentDuration = duration * progressState.toDouble()
 
 	val density = LocalDensity.current
-	val listState = rememberLazyListState()
+	val listState = viewModel.listState
 
 	val lyricsAutoscroll = Settings.shared.lyricsAutoscroll && !isSelectionMode
 

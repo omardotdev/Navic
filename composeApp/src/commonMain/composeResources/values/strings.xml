@@ -45,7 +45,6 @@
 	<string	name="subtitle_enable_scrobbling">Scrobble played tracks to your Navidrome server</string>
 	<string name="subtitle_choose_theme">Choose from a selection of themes</string>
 	<string name="subtitle_choose_font">Choose a font to use across the app</string>
-	<string name="subtitle_auto_hide_bar">Hide the bottom bar when nothing is playing</string>
 	<string name="suibtitle_progress_in_bar_is_seekable">Whether or not the progress bar can be dragged in the player bar</string>
 
 	<string name="option_system_font">Use system font</string>
@@ -56,7 +55,6 @@
 	<string name="option_show_progress_in_bar">Show progress in bar</string>
 	<string name="option_progress_in_bar_is_seekable">Progress in bar is seekable</string>
 	<string name="option_use_detached_bar">Detached bottom bar</string>
-	<string name="option_auto_hide_bar">Auto-hide bottom bar</string>
 	<string name="option_swipe_to_skip">Swipe to skip tracks</string>
 	<string name="option_artwork_shape">Artwork shape</string>
 	<string name="option_cover_art_size">Cover artwork size</string>

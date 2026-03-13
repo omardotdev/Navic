@@ -1,11 +1,7 @@
 package paige.navic.ui.screens
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
@@ -32,7 +28,6 @@ import navic.composeapp.generated.resources.info_track_path
 import navic.composeapp.generated.resources.info_track_sampling_rate
 import navic.composeapp.generated.resources.info_unknown
 import org.jetbrains.compose.resources.stringResource
-import paige.navic.LocalContentPadding
 import paige.navic.ui.components.common.Form
 import paige.navic.ui.components.common.FormRow
 import paige.navic.ui.components.layouts.NestedTopBar
@@ -43,12 +38,11 @@ import paige.navic.utils.toHoursMinutesSeconds
 @Composable
 fun TrackInfoScreen(track: Song) {
 	Scaffold(
-		topBar = { NestedTopBar({ Text(track.title) }) },
-		contentWindowInsets = WindowInsets.statusBars
-	) { innerPadding ->
+		topBar = { NestedTopBar({ Text(track.title) }) }
+	) { contentPadding ->
 		Column(
 			Modifier
-				.padding(innerPadding)
+				.padding(contentPadding)
 				.verticalScroll(rememberScrollState())
 				.padding(top = 12.dp, end = 12.dp, start = 12.dp)
 				.fadeFromTop()
@@ -78,7 +72,6 @@ fun TrackInfoScreen(track: Song) {
 					}
 				}
 			}
-			Spacer(Modifier.height(LocalContentPadding.current.calculateBottomPadding()))
 		}
 	}
 }

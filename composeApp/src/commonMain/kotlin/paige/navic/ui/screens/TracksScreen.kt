@@ -1,5 +1,7 @@
 package paige.navic.ui.screens
 
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -8,17 +10,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.plus
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -55,6 +57,7 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import com.kyant.capsule.ContinuousRoundedRectangle
 import dev.zt64.subsonic.api.model.Album
+import dev.zt64.subsonic.api.model.AlbumInfo
 import dev.zt64.subsonic.api.model.Playlist
 import dev.zt64.subsonic.api.model.Song
 import dev.zt64.subsonic.api.model.SongCollection
@@ -76,7 +79,6 @@ import navic.composeapp.generated.resources.info_unknown_genre
 import navic.composeapp.generated.resources.info_unknown_year
 import navic.composeapp.generated.resources.subtitle_playlist
 import org.jetbrains.compose.resources.stringResource
-import paige.navic.LocalContentPadding
 import paige.navic.LocalMediaPlayer
 import paige.navic.LocalNavStack
 import paige.navic.LocalSharedTransitionScope
@@ -109,6 +111,8 @@ import paige.navic.utils.UiState
 import paige.navic.utils.fadeFromTop
 import paige.navic.utils.shimmerLoading
 import paige.navic.utils.toHoursMinutesSeconds
+import paige.navic.utils.withoutTop
+import kotlin.collections.orEmpty
 import kotlin.time.Duration
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -121,7 +125,6 @@ fun TracksScreen(
 	}
 ) {
 	val backStack = LocalNavStack.current
-	val uriHandler = LocalUriHandler.current
 	val player = LocalMediaPlayer.current
 
 	val tracks by viewModel.tracksState.collectAsState()
@@ -134,271 +137,213 @@ fun TracksScreen(
 	val albumInfoState by viewModel.albumInfoState.collectAsState()
 	val starredState by viewModel.starredState.collectAsState()
 
-	Scaffold(
-		topBar = {
-			NestedTopBar({}, {
-				Box {
-					var expanded by remember { mutableStateOf(false) }
-					TopBarButton({
-						expanded = true
-					}) {
-						Icon(
-							Icons.Outlined.MoreVert,
-							stringResource(Res.string.action_more)
-						)
-					}
-					Dropdown(
-						expanded = expanded,
-						onDismissRequest = { expanded = false }
-					) {
-						val info = (albumInfoState as? UiState.Success)?.data
-						DropdownItem(
-							text = { Text(stringResource(Res.string.action_view_on_lastfm)) },
-							leadingIcon = { Icon(Icons.Brand.Lastfm, null) },
-							enabled = albumInfoState is UiState.Success
-								&& info?.lastFmUrl != null,
-							onClick = {
-								expanded = false
-								info?.lastFmUrl?.let { url ->
-									uriHandler.openUri(url)
-								}
-							}
-						)
-						DropdownItem(
-							text = { Text(stringResource(Res.string.action_view_on_musicbrainz)) },
-							leadingIcon = { Icon(Icons.Brand.Musicbrainz, null) },
-							enabled = albumInfoState is UiState.Success
-								&& info?.musicBrainzId != null,
-							onClick = {
-								expanded = false
-								info?.musicBrainzId?.let { id ->
-									uriHandler.openUri(
-										"https://musicbrainz.org/release/$id"
-									)
-								}
-							}
-						)
-						DropdownItem(
-							text = { Text(stringResource(Res.string.action_share)) },
-							leadingIcon = { Icon(Icons.Outlined.Share, null) },
-							containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-							enabled = tracks is UiState.Success,
-							onClick = {
-								expanded = false
-								shareId = (tracks as? UiState.Success)?.data?.id
-							},
-						)
-						DropdownItem(
-							text = { Text(stringResource(Res.string.action_add_all_to_playlist)) },
-							leadingIcon = { Icon(Icons.Outlined.PlaylistAdd, null) },
-							containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-							enabled = tracks is UiState.Success,
-							onClick = {
-								expanded = false
-								if (backStack.lastOrNull() !is Screen.AddToPlaylist) {
-									backStack.add(
-										Screen.AddToPlaylist(
-											(tracks as? UiState.Success)?.data?.songs.orEmpty()
-										)
-									)
-								}
-							},
-						)
-					}
-				}
-			})
-		},
-		contentWindowInsets = WindowInsets.statusBars
-	) { innerPadding ->
-		PullToRefreshBox(
-			modifier = Modifier
-				.padding(innerPadding)
-				.background(MaterialTheme.colorScheme.surface),
-			isRefreshing = tracks is UiState.Loading,
-			onRefresh = { viewModel.refreshTracks() }
-		) {
-			LazyColumn(
-				modifier = Modifier
-					.background(MaterialTheme.colorScheme.surface)
-					.fillMaxSize()
-					.fadeFromTop(),
-				horizontalAlignment = Alignment.CenterHorizontally,
-				contentPadding = PaddingValues(
-					top = 16.dp,
-					end = 16.dp,
-					start = 16.dp,
-					bottom = LocalContentPadding.current.calculateBottomPadding()
+	SharedTransitionLayout {
+		Scaffold(
+			topBar = {
+				TracksScreenTopBar(
+					albumInfoState = albumInfoState,
+					tracks = tracks,
+					sharedTransitionScope = this@SharedTransitionLayout,
+					listState = viewModel.listState,
+					onSetShareId = { shareId = it }
 				)
+			}
+		) { contentPadding ->
+			PullToRefreshBox(
+				modifier = Modifier
+					.padding(top = contentPadding.calculateTopPadding())
+					.background(MaterialTheme.colorScheme.surface),
+				isRefreshing = tracks is UiState.Loading,
+				onRefresh = { viewModel.refreshTracks() }
 			) {
-				item {
-					Metadata(partialTracks, tab)
-				}
-
-				val error = (tracks as? UiState.Error)
-				val tracks = (tracks as? UiState.Success)?.data
-				if (error != null) {
-					item { ErrorBox(error) }
-					return@LazyColumn
-				}
-				if (tracks == null) {
-					tracksScreenPlaceholder(partialTracks.songCount)
-					return@LazyColumn
-				}
-
-				item { Buttons(tracks) }
-
-				// we can't use Form here because it's not lazy and if there's
-				// around 40 items you can't interact with them after the 40th
-				itemsIndexed(tracks.songs) { index, track ->
-					Box {
-						TrackRow(
-							modifier = Modifier
-								// workaround that mimics the styling of Form
-								// this is temporary and should be cleaned up
-								// because it's garbage
-								//
-								// ideally we should do this everywhere in the
-								// app and just stop using non-lazy things where
-								// possible
-								.clip(
-									if (tracks.songs.count() == 1)
-										ContinuousRoundedRectangle(18.dp)
-									else when (index) {
-										0 -> ContinuousRoundedRectangle(
-											topStart = 18.dp,
-											topEnd = 18.dp
-										)
-
-										tracks.songs.lastIndex -> ContinuousRoundedRectangle(
-											bottomStart = 18.dp,
-											bottomEnd = 18.dp
-										)
-
-										else -> RectangleShape
-									}
-								)
-								.background(
-									if (Settings.shared.theme != Settings.Theme.iOS
-										&& Settings.shared.theme != Settings.Theme.Spotify
-										&& Settings.shared.theme != Settings.Theme.AppleMusic
-									) Color.Unspecified else MaterialTheme.colorScheme.surfaceContainerHighest
-								)
-								.padding(
-									bottom = if (index != tracks.songs.lastIndex)
-										if (Settings.shared.theme.isMaterialLike())
-											3.dp
-										else 1.dp
-									else 0.dp
-								),
-							track = track,
-							index = index,
-							onClick = {
-								player.clearQueue()
-								player.addToQueue(tracks)
-								player.playAt(index)
-							},
-							onLongClick = {
-								viewModel.selectTrack(track, index)
-							}
+				LazyColumn(
+					modifier = Modifier
+						.background(MaterialTheme.colorScheme.surface)
+						.fillMaxSize()
+						.fadeFromTop(),
+					horizontalAlignment = Alignment.CenterHorizontally,
+					contentPadding = contentPadding.withoutTop() + PaddingValues(
+						top = 16.dp,
+						end = 16.dp,
+						start = 16.dp
+					),
+					state = viewModel.listState
+				) {
+					item {
+						Metadata(
+							partialTracks = partialTracks,
+							tab = tab,
+							listState = viewModel.listState,
+							sharedTransitionScope = this@SharedTransitionLayout
 						)
-						Dropdown(
-							expanded = selection == track && selectedIndex == index,
-							onDismissRequest = {
-								viewModel.clearSelection()
-							}
-						) {
-							DropdownItem(
-								containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-								text = { Text(stringResource(Res.string.action_share)) },
-								leadingIcon = { Icon(Icons.Outlined.Share, null) },
-								onClick = {
-									shareId = track.id
-									viewModel.clearSelection()
-								},
-							)
-							val starred =
-								(starredState as? UiState.Success)?.data
-							DropdownItem(
-								containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-								text = {
-									Text(
-										stringResource(
-											if (starred == true)
-												Res.string.action_remove_star
-											else Res.string.action_star
-										)
-									)
-								},
-								leadingIcon = {
-									Icon(
-										if (starred == true)
-											Icons.Filled.Star
-										else Icons.Outlined.Star,
-										null
-									)
-								},
-								onClick = {
-									if (starred == true)
-										viewModel.unstarSelectedTrack()
-									else viewModel.starSelectedTrack()
-									viewModel.clearSelection()
-								},
-								enabled = starred != null
-							)
-							DropdownItem(
-								containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-								text = { Text(stringResource(Res.string.action_track_info)) },
-								leadingIcon = { Icon(Icons.Outlined.Info, null) },
-								onClick = {
-									backStack.add(Screen.TrackInfo(track))
-									viewModel.clearSelection()
-								},
-							)
-							DropdownItem(
-								containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-								text = {
-									Text(
-										stringResource(
-											if (tracks is Playlist)
-												Res.string.action_add_to_another_playlist
-											else Res.string.action_add_to_playlist
-										)
-									)
-								},
-								leadingIcon = {
-									Icon(
-										Icons.Outlined.PlaylistAdd,
-										null
-									)
-								},
-								onClick = {
-									viewModel.clearSelection()
-									if (backStack.lastOrNull() !is Screen.AddToPlaylist) {
-										backStack.add(
-											Screen.AddToPlaylist(
-												listOf(track),
-												playlistToExclude = if (tracks is Playlist)
-													tracks.id
-												else null
+					}
+
+					val error = (tracks as? UiState.Error)
+					val tracks = (tracks as? UiState.Success)?.data
+					if (error != null) {
+						item { ErrorBox(error) }
+						return@LazyColumn
+					}
+					if (tracks == null) {
+						tracksScreenPlaceholder(partialTracks.songCount)
+						return@LazyColumn
+					}
+
+					item { Buttons(tracks) }
+
+					// we can't use Form here because it's not lazy and if there's
+					// around 40 items you can't interact with them after the 40th
+					itemsIndexed(tracks.songs) { index, track ->
+						Box {
+							TrackRow(
+								modifier = Modifier
+									// workaround that mimics the styling of Form
+									// this is temporary and should be cleaned up
+									// because it's garbage
+									//
+									// ideally we should do this everywhere in the
+									// app and just stop using non-lazy things where
+									// possible
+									.clip(
+										if (tracks.songs.count() == 1)
+											ContinuousRoundedRectangle(18.dp)
+										else when (index) {
+											0 -> ContinuousRoundedRectangle(
+												topStart = 18.dp,
+												topEnd = 18.dp
 											)
-										)
-									}
+
+											tracks.songs.lastIndex -> ContinuousRoundedRectangle(
+												bottomStart = 18.dp,
+												bottomEnd = 18.dp
+											)
+
+											else -> RectangleShape
+										}
+									)
+									.background(
+										if (Settings.shared.theme != Settings.Theme.iOS
+											&& Settings.shared.theme != Settings.Theme.Spotify
+											&& Settings.shared.theme != Settings.Theme.AppleMusic
+										) Color.Unspecified else MaterialTheme.colorScheme.surfaceContainerHighest
+									)
+									.padding(
+										bottom = if (index != tracks.songs.lastIndex)
+											if (Settings.shared.theme.isMaterialLike())
+												3.dp
+											else 1.dp
+										else 0.dp
+									),
+								track = track,
+								index = index,
+								onClick = {
+									player.clearQueue()
+									player.addToQueue(tracks)
+									player.playAt(index)
 								},
+								onLongClick = {
+									viewModel.selectTrack(track, index)
+								}
 							)
-							if (tracks is Playlist) {
+							Dropdown(
+								expanded = selection == track && selectedIndex == index,
+								onDismissRequest = {
+									viewModel.clearSelection()
+								}
+							) {
 								DropdownItem(
 									containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-									text = { Text(stringResource(Res.string.action_remove_from_playlist)) },
+									text = { Text(stringResource(Res.string.action_share)) },
+									leadingIcon = { Icon(Icons.Outlined.Share, null) },
+									onClick = {
+										shareId = track.id
+										viewModel.clearSelection()
+									},
+								)
+								val starred =
+									(starredState as? UiState.Success)?.data
+								DropdownItem(
+									containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+									text = {
+										Text(
+											stringResource(
+												if (starred == true)
+													Res.string.action_remove_star
+												else Res.string.action_star
+											)
+										)
+									},
 									leadingIcon = {
 										Icon(
-											Icons.Outlined.PlaylistRemove,
+											if (starred == true)
+												Icons.Filled.Star
+											else Icons.Outlined.Star,
 											null
 										)
 									},
 									onClick = {
-										viewModel.removeFromPlaylist()
+										if (starred == true)
+											viewModel.unstarSelectedTrack()
+										else viewModel.starSelectedTrack()
+										viewModel.clearSelection()
+									},
+									enabled = starred != null
+								)
+								DropdownItem(
+									containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+									text = { Text(stringResource(Res.string.action_track_info)) },
+									leadingIcon = { Icon(Icons.Outlined.Info, null) },
+									onClick = {
+										backStack.add(Screen.TrackInfo(track))
+										viewModel.clearSelection()
 									},
 								)
+								DropdownItem(
+									containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+									text = {
+										Text(
+											stringResource(
+												if (tracks is Playlist)
+													Res.string.action_add_to_another_playlist
+												else Res.string.action_add_to_playlist
+											)
+										)
+									},
+									leadingIcon = {
+										Icon(
+											Icons.Outlined.PlaylistAdd,
+											null
+										)
+									},
+									onClick = {
+										viewModel.clearSelection()
+										if (backStack.lastOrNull() !is Screen.AddToPlaylist) {
+											backStack.add(
+												Screen.AddToPlaylist(
+													listOf(track),
+													playlistToExclude = if (tracks is Playlist)
+														tracks.id
+													else null
+												)
+											)
+										}
+									},
+								)
+								if (tracks is Playlist) {
+									DropdownItem(
+										containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+										text = { Text(stringResource(Res.string.action_remove_from_playlist)) },
+										leadingIcon = {
+											Icon(
+												Icons.Outlined.PlaylistRemove,
+												null
+											)
+										},
+										onClick = {
+											viewModel.removeFromPlaylist()
+										},
+									)
+								}
 							}
 						}
 					}
@@ -419,7 +364,9 @@ fun TracksScreen(
 @Composable
 private fun Metadata(
 	partialTracks: SongCollection,
-	tab: String
+	tab: String,
+	listState: LazyListState,
+	sharedTransitionScope: SharedTransitionScope
 ) {
 	val platformContext = LocalPlatformContext.current
 	val uriHandler = LocalUriHandler.current
@@ -465,11 +412,17 @@ private fun Metadata(
 		)
 		Spacer(Modifier.height(10.dp))
 		Column(horizontalAlignment = Alignment.CenterHorizontally) {
-			Text(
-				partialTracks.name,
-				style = MaterialTheme.typography.headlineSmall,
-				textAlign = TextAlign.Center
-			)
+			with(sharedTransitionScope) {
+				Text(
+					partialTracks.name,
+					modifier = Modifier.sharedElementWithCallerManagedVisibility(
+						sharedContentState = rememberSharedContentState("name"),
+						visible = !listState.canScrollBackward
+					),
+					style = MaterialTheme.typography.headlineSmall,
+					textAlign = TextAlign.Center
+				)
+			}
 			val subtitle = when (partialTracks) {
 				is Album -> partialTracks.artistName
 				is Playlist -> partialTracks.comment
@@ -651,4 +604,100 @@ private fun LazyListScope.tracksScreenPlaceholder(
 				.height(72.dp)
 		)
 	}
+}
+
+@Composable
+private fun TracksScreenTopBar(
+	tracks: UiState<SongCollection>,
+	albumInfoState: UiState<AlbumInfo>,
+	onSetShareId: (shareId: String?) -> Unit,
+	sharedTransitionScope: SharedTransitionScope,
+	listState: LazyListState
+) {
+	val backStack = LocalNavStack.current
+	val uriHandler = LocalUriHandler.current
+	NestedTopBar(
+		title = {
+			with(sharedTransitionScope) {
+				Text(
+					(tracks as? UiState.Success)?.data?.name ?: "",
+					modifier = Modifier.sharedElementWithCallerManagedVisibility(
+						sharedContentState = rememberSharedContentState("name"),
+						visible = listState.canScrollBackward
+					)
+				)
+			}
+		},
+		actions = {
+			Box {
+				var expanded by remember { mutableStateOf(false) }
+				TopBarButton({
+					expanded = true
+				}) {
+					Icon(
+						Icons.Outlined.MoreVert,
+						stringResource(Res.string.action_more)
+					)
+				}
+				Dropdown(
+					expanded = expanded,
+					onDismissRequest = { expanded = false }
+				) {
+					val info = (albumInfoState as? UiState.Success)?.data
+					DropdownItem(
+						text = { Text(stringResource(Res.string.action_view_on_lastfm)) },
+						leadingIcon = { Icon(Icons.Brand.Lastfm, null) },
+						enabled = albumInfoState is UiState.Success
+							&& info?.lastFmUrl != null,
+						onClick = {
+							expanded = false
+							info?.lastFmUrl?.let { url ->
+								uriHandler.openUri(url)
+							}
+						}
+					)
+					DropdownItem(
+						text = { Text(stringResource(Res.string.action_view_on_musicbrainz)) },
+						leadingIcon = { Icon(Icons.Brand.Musicbrainz, null) },
+						enabled = albumInfoState is UiState.Success
+							&& info?.musicBrainzId != null,
+						onClick = {
+							expanded = false
+							info?.musicBrainzId?.let { id ->
+								uriHandler.openUri(
+									"https://musicbrainz.org/release/$id"
+								)
+							}
+						}
+					)
+					DropdownItem(
+						text = { Text(stringResource(Res.string.action_share)) },
+						leadingIcon = { Icon(Icons.Outlined.Share, null) },
+						containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+						enabled = tracks is UiState.Success,
+						onClick = {
+							expanded = false
+							onSetShareId((tracks as? UiState.Success)?.data?.id)
+						},
+					)
+					DropdownItem(
+						text = { Text(stringResource(Res.string.action_add_all_to_playlist)) },
+						leadingIcon = { Icon(Icons.Outlined.PlaylistAdd, null) },
+						containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+						enabled = tracks is UiState.Success,
+						onClick = {
+							expanded = false
+							if (backStack.lastOrNull() !is Screen.AddToPlaylist) {
+								backStack.add(
+									Screen.AddToPlaylist(
+										(tracks as? UiState.Success)?.data?.songs.orEmpty()
+									)
+								)
+							}
+						},
+					)
+				}
+			}
+		}
+	)
 }

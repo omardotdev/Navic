@@ -1,5 +1,6 @@
 package paige.navic.ui.viewmodels
 
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.zt64.subsonic.api.model.Song
@@ -9,7 +10,6 @@ import kotlinx.coroutines.launch
 import paige.navic.data.repositories.LyricsRepository
 import paige.navic.data.repositories.LyricsResult
 import paige.navic.utils.UiState
-import kotlin.time.Duration
 
 class LyricsViewModel(
 	private val track: Song?,
@@ -17,6 +17,8 @@ class LyricsViewModel(
 ) : ViewModel() {
 	private val _lyricsState = MutableStateFlow<UiState<LyricsResult?>>(UiState.Loading)
 	val lyricsState = _lyricsState.asStateFlow()
+
+	val listState = LazyListState()
 
 	init {
 		refreshResults()

@@ -5,16 +5,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -53,7 +52,6 @@ import navic.composeapp.generated.resources.title_library
 import navic.composeapp.generated.resources.title_playlists
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
-import paige.navic.LocalContentPadding
 import paige.navic.LocalCtx
 import paige.navic.LocalNavStack
 import paige.navic.data.models.Screen
@@ -66,6 +64,7 @@ import paige.navic.icons.outlined.Star
 import paige.navic.ui.components.dialogs.DeletionDialog
 import paige.navic.ui.components.dialogs.DeletionEndpoint
 import paige.navic.ui.components.dialogs.ShareDialog
+import paige.navic.ui.components.layouts.RootBottomBar
 import paige.navic.ui.components.layouts.RootTopBar
 import paige.navic.ui.components.layouts.horizontalSection
 import paige.navic.ui.theme.defaultFont
@@ -73,6 +72,7 @@ import paige.navic.ui.viewmodels.AlbumsViewModel
 import paige.navic.ui.viewmodels.ArtistsViewModel
 import paige.navic.ui.viewmodels.PlaylistsViewModel
 import paige.navic.utils.UiState
+import paige.navic.utils.withoutTop
 import kotlin.time.Duration
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
@@ -87,6 +87,8 @@ fun LibraryScreen(
 	val recentsState by albumsViewModel.albumsState.collectAsState()
 	val playlistsState by playlistsViewModel.playlistsState.collectAsState()
 	val artistsState by artistsViewModel.artistsState.collectAsState()
+
+	val gridState = albumsViewModel.gridState
 
 	val flatArtistsState = remember(artistsState) {
 		when (val s = artistsState) {
@@ -104,7 +106,7 @@ fun LibraryScreen(
 
 	Scaffold(
 		topBar = { RootTopBar({ Text(stringResource(Res.string.title_library)) }, scrollBehavior) },
-		contentWindowInsets = WindowInsets.statusBars
+		bottomBar = { RootBottomBar(scrolled = gridState.lastScrolledForward) }
 	) { innerPadding ->
 		PullToRefreshBox(
 			modifier = Modifier
@@ -121,13 +123,11 @@ fun LibraryScreen(
 		) {
 			LazyVerticalGrid(
 				modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+				state = gridState,
 				columns = GridCells.Fixed(2),
-				contentPadding = PaddingValues(
-					top = 16.dp,
-					bottom = LocalContentPadding.current.calculateBottomPadding(),
-				),
-				verticalArrangement = Arrangement.spacedBy(6.dp),
-				horizontalArrangement = Arrangement.spacedBy(6.dp),
+				contentPadding = innerPadding.withoutTop(),
+				verticalArrangement = Arrangement.spacedBy(5.dp),
+				horizontalArrangement = Arrangement.spacedBy(5.dp),
 			) {
 				overviewButton(
 					icon = Icons.Outlined.LibraryAdd,
@@ -250,8 +250,8 @@ private fun LazyGridScope.overviewButton(
 			contentPadding = PaddingValues(horizontal = 12.dp),
 			elevation = null,
 			shapes = ButtonDefaults.shapes(
-				shape = MaterialTheme.shapes.medium,
-				pressedShape = MaterialTheme.shapes.small
+				shape = MaterialTheme.shapes.small,
+				pressedShape = MaterialTheme.shapes.extraSmall
 			),
 			colors = ButtonDefaults.buttonColors(
 				containerColor = MaterialTheme.colorScheme.surfaceContainer,

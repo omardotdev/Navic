@@ -7,10 +7,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -47,17 +45,14 @@ import navic.composeapp.generated.resources.option_choose_theme
 import navic.composeapp.generated.resources.option_cover_art_size
 import navic.composeapp.generated.resources.option_grid_items_per_row
 import navic.composeapp.generated.resources.option_marquee_duration
-import navic.composeapp.generated.resources.option_system_font
 import navic.composeapp.generated.resources.option_use_marquee_text
 import navic.composeapp.generated.resources.subtitle_choose_font
 import navic.composeapp.generated.resources.subtitle_choose_theme
 import navic.composeapp.generated.resources.subtitle_grid_items_per_row
-import navic.composeapp.generated.resources.subtitle_system_font
 import navic.composeapp.generated.resources.subtitle_use_marquee_text
 import navic.composeapp.generated.resources.title_appearance
 import navic.composeapp.generated.resources.title_choose_font
 import org.jetbrains.compose.resources.stringResource
-import paige.navic.LocalContentPadding
 import paige.navic.LocalCtx
 import paige.navic.LocalNavStack
 import paige.navic.data.models.Screen
@@ -294,7 +289,6 @@ fun SettingsAppearanceScreen() {
 						onSetValue = { Settings.shared.alphabeticalScroll = it }
 					)
 				}
-				Spacer(Modifier.height(LocalContentPadding.current.calculateBottomPadding()))
 			}
 		}
 		ArtworkShapeDialog(

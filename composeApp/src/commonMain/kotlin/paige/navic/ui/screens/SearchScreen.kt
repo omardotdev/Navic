@@ -2,22 +2,25 @@ package paige.navic.ui.screens
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldLineLimits
@@ -32,7 +35,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -73,7 +78,6 @@ import navic.composeapp.generated.resources.title_search
 import navic.composeapp.generated.resources.title_songs
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
-import paige.navic.LocalContentPadding
 import paige.navic.LocalCtx
 import paige.navic.LocalMediaPlayer
 import paige.navic.LocalNavStack
@@ -88,6 +92,7 @@ import paige.navic.icons.outlined.History
 import paige.navic.ui.components.common.ErrorBox
 import paige.navic.ui.components.common.MarqueeText
 import paige.navic.ui.components.layouts.ArtGrid
+import paige.navic.ui.components.layouts.RootBottomBar
 import paige.navic.ui.components.layouts.artGridPlaceholder
 import paige.navic.ui.components.layouts.horizontalSection
 import paige.navic.ui.viewmodels.AlbumsViewModel
@@ -110,7 +115,6 @@ fun SearchScreen(
 ) {
 	val query = viewModel.searchQuery
 	val state by viewModel.searchState.collectAsState()
-
 	val searchHistory by viewModel.searchHistory.collectAsState(initial = emptyList())
 
 	val ctx = LocalCtx.current
@@ -122,32 +126,45 @@ fun SearchScreen(
 
 	var selectedCategory by remember { mutableStateOf(SearchCategory.ALL) }
 
-	Column(
-		modifier = Modifier.padding(
-			top = LocalContentPadding.current.calculateTopPadding(),
-			bottom = LocalContentPadding.current.calculateBottomPadding()
-		)
-	) {
-		SearchTopBar(
-			query = query,
-			nested = nested,
-			onSearch = { submittedQuery ->
-				viewModel.addToSearchHistory(submittedQuery)
+	Scaffold(
+		topBar = {
+			Column(
+				modifier = Modifier
+					.background(MaterialTheme.colorScheme.surface)
+					.padding(
+						TopAppBarDefaults.windowInsets.asPaddingValues()
+					)
+			) {
+				SearchTopBar(
+					query = query,
+					nested = nested,
+					onSearch = { submittedQuery ->
+						viewModel.addToSearchHistory(submittedQuery)
+					}
+				)
+				SearchChips(
+					selectedCategory = selectedCategory,
+					onCategorySelect = { selectedCategory = it }
+				)
 			}
-		)
-
-		SearchChips(
-			selectedCategory = selectedCategory,
-			onCategorySelect = { selectedCategory = it }
-		)
-
+		},
+		bottomBar = {
+			if (!nested) {
+				RootBottomBar(
+					scrolled = viewModel.gridState.lastScrolledForward,
+					modifier = Modifier.imePadding(),
+					hidePlayerBar = WindowInsets.ime.asPaddingValues().calculateBottomPadding() >= 100.dp
+				)
+			}
+		}
+	) { contentPadding ->
 		AnimatedContent(
 			state,
 			modifier = Modifier.fillMaxSize()
 		) { uiState ->
 			when (uiState) {
-				is UiState.Loading -> ArtGrid { artGridPlaceholder() }
-				is UiState.Error -> ErrorBox(uiState)
+				is UiState.Loading -> ArtGrid(contentPadding = contentPadding) { artGridPlaceholder() }
+				is UiState.Error -> ErrorBox(uiState, padding = contentPadding)
 				is UiState.Success -> {
 					val results = uiState.data
 					val showAll = selectedCategory == SearchCategory.ALL
@@ -161,7 +178,8 @@ fun SearchScreen(
 					LazyVerticalGrid(
 						modifier = Modifier.fillMaxSize(),
 						columns = GridCells.Fixed(2),
-						contentPadding = PaddingValues(bottom = 16.dp),
+						contentPadding = contentPadding,
+						state = viewModel.gridState,
 						verticalArrangement = Arrangement.spacedBy(8.dp)
 					) {
 						if (query.text.isNotBlank()) {
@@ -294,7 +312,6 @@ fun SearchScreen(
 				}
 			}
 		}
-		Spacer(Modifier.height(LocalContentPadding.current.calculateBottomPadding()))
 	}
 }
 
@@ -306,7 +323,7 @@ private fun SearchChips(
 ) {
 	val ctx = LocalCtx.current
 	Row(
-		modifier = Modifier.padding(horizontal = 16.dp).widthIn(max = 600.dp),
+		modifier = Modifier.padding(horizontal = 16.dp),
 		horizontalArrangement = Arrangement.spacedBy(8.dp)
 	) {
 		SearchCategory.entries.forEach { category ->
@@ -362,76 +379,74 @@ private fun SearchTopBar(
 		focusRequester.requestFocus()
 	}
 
-	Column {
-		Row(
-			verticalAlignment = Alignment.CenterVertically
-		) {
-			if (nested) {
-				Box(
-					modifier = Modifier.size(56.dp),
-					contentAlignment = Alignment.Center
-				) {
-					IconButton(
-						onClick = {
-							ctx.clickSound()
-							focusManager.clearFocus(true)
-							if (backStack.size > 1) backStack.removeLastOrNull()
-						}
-					) {
-						Icon(
-							Icons.Outlined.ArrowBack,
-							contentDescription = stringResource(Res.string.action_navigate_back),
-							tint = MaterialTheme.colorScheme.onSurfaceVariant
-						)
-					}
-				}
-			}
-			BasicTextField(
-				state = query,
-				modifier = Modifier
-					.weight(1f)
-					.height(72.dp)
-					.padding(start = if (nested) 0.dp else 18.dp)
-					.focusRequester(focusRequester),
-				lineLimits = TextFieldLineLimits.SingleLine,
-				keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-				onKeyboardAction = {
-					focusManager.clearFocus()
-					if (query.text.isNotBlank()) {
-						onSearch(query.text.toString())
-					}
-				},
-				textStyle = TextStyle(color = MaterialTheme.colorScheme.onSurface),
-				cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-				decorator = { innerTextField ->
-					Box(contentAlignment = Alignment.CenterStart) {
-						if (query.text.isEmpty()) {
-							Text(
-								text = stringResource(Res.string.title_search),
-								color = MaterialTheme.colorScheme.onSurfaceVariant
-							)
-						}
-						innerTextField()
-					}
-				}
-			)
+	Row(
+		verticalAlignment = Alignment.CenterVertically
+	) {
+		if (nested) {
 			Box(
 				modifier = Modifier.size(56.dp),
 				contentAlignment = Alignment.Center
 			) {
-				if (query.text.isNotEmpty()) {
-					IconButton(
-						modifier = Modifier.padding(horizontal = 8.dp),
-						onClick = {
-							ctx.clickSound()
-							query.clearText()
-						}
-					) {
-						Icon(
-							Icons.Outlined.Close,
-							contentDescription = stringResource(Res.string.action_clear_search)
+				IconButton(
+					onClick = {
+						ctx.clickSound()
+						focusManager.clearFocus(true)
+						if (backStack.size > 1) backStack.removeLastOrNull()
+					}
+				) {
+					Icon(
+						Icons.Outlined.ArrowBack,
+						contentDescription = stringResource(Res.string.action_navigate_back),
+						tint = MaterialTheme.colorScheme.onSurfaceVariant
+					)
+				}
+			}
+		}
+		BasicTextField(
+			state = query,
+			modifier = Modifier
+				.weight(1f)
+				.height(72.dp)
+				.padding(start = if (nested) 0.dp else 18.dp)
+				.focusRequester(focusRequester),
+			lineLimits = TextFieldLineLimits.SingleLine,
+			keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+			onKeyboardAction = {
+				focusManager.clearFocus()
+				if (query.text.isNotBlank()) {
+					onSearch(query.text.toString())
+				}
+			},
+			textStyle = TextStyle(color = MaterialTheme.colorScheme.onSurface),
+			cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+			decorator = { innerTextField ->
+				Box(contentAlignment = Alignment.CenterStart) {
+					if (query.text.isEmpty()) {
+						Text(
+							text = stringResource(Res.string.title_search),
+							color = MaterialTheme.colorScheme.onSurfaceVariant
 						)
 					}
+					innerTextField()
+				}
+			}
+		)
+		Box(
+			modifier = Modifier.size(56.dp),
+			contentAlignment = Alignment.Center
+		) {
+			if (query.text.isNotEmpty()) {
+				IconButton(
+					modifier = Modifier.padding(horizontal = 8.dp),
+					onClick = {
+						ctx.clickSound()
+						query.clearText()
+					}
+				) {
+					Icon(
+						Icons.Outlined.Close,
+						contentDescription = stringResource(Res.string.action_clear_search)
+					)
 				}
 			}
 		}

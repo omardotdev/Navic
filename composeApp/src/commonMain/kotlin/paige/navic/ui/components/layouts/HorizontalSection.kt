@@ -80,7 +80,7 @@ private fun LazyGridScope.header(
 			stringResource(title, formatArgs),
 			style = MaterialTheme.typography.titleMediumEmphasized,
 			fontWeight = FontWeight(600),
-			modifier = Modifier.heightIn(min = 32.dp).padding(top = 8.dp, start = 16.dp)
+			modifier = Modifier.heightIn(min = 32.dp).padding(top = 12.dp, start = 16.dp)
 		)
 	}
 	if (active) {
@@ -94,7 +94,7 @@ private fun LazyGridScope.header(
 				textAlign = TextAlign.Right,
 				modifier = Modifier
 					.heightIn(min = 32.dp)
-					.padding(top = 8.dp, end = 16.dp)
+					.padding(top = 12.dp, end = 16.dp)
 					.clickable(
 						interactionSource = null,
 						indication = null

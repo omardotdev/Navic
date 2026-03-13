@@ -1,5 +1,6 @@
 package paige.navic.ui.viewmodels
 
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.zt64.subsonic.api.model.Share
@@ -18,6 +19,8 @@ class SharesViewModel(
 
 	private val _isRefreshing = MutableStateFlow(false)
 	val isRefreshing = _isRefreshing.asStateFlow()
+
+	val gridState = LazyGridState()
 
 	init {
 		viewModelScope.launch {

@@ -51,11 +51,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.zt64.subsonic.api.model.Song
 import navic.composeapp.generated.resources.Res
 import navic.composeapp.generated.resources.action_remove_from_queue
 import navic.composeapp.generated.resources.action_reorder
-import navic.composeapp.generated.resources.info_unknown_artist
 import org.jetbrains.compose.resources.stringResource
 import paige.navic.LocalCtx
 import paige.navic.LocalMediaPlayer
@@ -63,6 +63,7 @@ import paige.navic.icons.Icons
 import paige.navic.icons.outlined.Delete
 import paige.navic.icons.outlined.DragHandle
 import paige.navic.ui.components.common.MarqueeText
+import paige.navic.ui.viewmodels.QueueViewModel
 import paige.navic.utils.DraggableListState
 import paige.navic.utils.dragHandle
 import paige.navic.utils.draggableItems
@@ -71,7 +72,9 @@ import paige.navic.utils.rememberDraggableListState
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun QueueScreen() {
+fun QueueScreen(
+	viewModel: QueueViewModel = viewModel { QueueViewModel() }
+) {
 	val ctx = LocalCtx.current
 	val player = LocalMediaPlayer.current
 	val playerState by player.uiState.collectAsStateWithLifecycle()
@@ -79,7 +82,7 @@ fun QueueScreen() {
 	val queue = playerState.queue
 
 	val haptic = LocalHapticFeedback.current
-	val draggableState = rememberDraggableListState { from, to ->
+	val draggableState = rememberDraggableListState(viewModel.listState) { from, to ->
 		player.moveQueueItem(from, to)
 		haptic.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
 	}

@@ -4,9 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -46,7 +44,6 @@ import navic.composeapp.generated.resources.title_settings
 import navic.composeapp.generated.resources.title_source
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
-import paige.navic.LocalContentPadding
 import paige.navic.LocalNavStack
 import paige.navic.data.models.Screen
 import paige.navic.data.models.Settings
@@ -142,7 +139,6 @@ fun SettingsScreen() {
 					backgroundColor = Color(0xFFC7C7C7)
 				)
 			}
-			Spacer(Modifier.height(LocalContentPadding.current.calculateBottomPadding()))
 		}
 	}
 }

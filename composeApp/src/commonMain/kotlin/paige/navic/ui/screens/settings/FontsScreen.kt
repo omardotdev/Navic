@@ -3,10 +3,12 @@ package paige.navic.ui.screens.settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.plus
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.CircleShape
@@ -39,18 +41,17 @@ import paige.navic.utils.fadeFromTop
 @Composable
 fun FontsScreen() {
 	Scaffold(
-		topBar = { NestedTopBar({ Text(stringResource(Res.string.title_choose_font)) }) },
-		contentWindowInsets = WindowInsets.statusBars
-	) { innerPadding ->
+		topBar = { NestedTopBar({ Text(stringResource(Res.string.title_choose_font)) }) }
+	) { contentPadding ->
 		CompositionLocalProvider(
 			LocalMinimumInteractiveComponentSize provides 0.dp
 		) {
 			LazyColumn(
-				Modifier
-					.padding(innerPadding)
-					.padding(top = 16.dp, end = 16.dp, start = 16.dp)
-					.fadeFromTop(),
-				verticalArrangement = Arrangement.spacedBy(3.dp)
+				modifier = Modifier.fadeFromTop(),
+				verticalArrangement = Arrangement.spacedBy(3.dp),
+				contentPadding = contentPadding + PaddingValues(
+					top = 16.dp, end = 16.dp, start = 16.dp
+				)
 			) {
 				inbuiltFonts()
 				externalFonts()
@@ -95,6 +96,7 @@ private fun LazyListScope.inbuiltFonts() {
 			},
 			selected = Settings.shared.font == Settings.FontOption.GoogleSans
 		)
+		Spacer(Modifier.height(10.dp))
 	}
 }
 

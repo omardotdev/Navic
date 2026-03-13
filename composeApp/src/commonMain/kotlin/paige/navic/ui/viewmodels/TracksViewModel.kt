@@ -1,5 +1,7 @@
 package paige.navic.ui.viewmodels
 
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.zt64.subsonic.api.model.Album
@@ -32,6 +34,8 @@ class TracksViewModel(
 
 	private val _starredState = MutableStateFlow<UiState<Boolean>>(UiState.Success(false))
 	val starredState = _starredState.asStateFlow()
+
+	val listState = LazyListState()
 
 	init {
 		viewModelScope.launch {

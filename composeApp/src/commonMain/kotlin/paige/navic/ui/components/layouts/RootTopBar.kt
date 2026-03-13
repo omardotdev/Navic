@@ -86,7 +86,12 @@ fun RootTopBar(
 
 	MediumFlexibleTopAppBar(
 		title = {
-			CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.headlineSmall) {
+			CompositionLocalProvider(
+				LocalTextStyle provides when (LocalTextStyle.current) {
+					MaterialTheme.typography.headlineMedium -> MaterialTheme.typography.headlineSmall
+					else -> MaterialTheme.typography.titleLarge
+				}
+			) {
 				title()
 			}
 		},

@@ -1,5 +1,6 @@
 package paige.navic.ui.viewmodels
 
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
@@ -22,6 +23,8 @@ class SearchViewModel(
 	private val _searchHistory = MutableStateFlow<List<String>>(emptyList())
 	val searchHistory = _searchHistory.asStateFlow()
 	val searchQuery = TextFieldState()
+
+	val gridState = LazyGridState()
 
 	init {
 		viewModelScope.launch {

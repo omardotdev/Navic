@@ -4,10 +4,11 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -46,10 +47,12 @@ import paige.navic.ui.components.common.ErrorBox
 import paige.navic.ui.components.layouts.ArtGrid
 import paige.navic.ui.components.layouts.ArtGridItem
 import paige.navic.ui.components.layouts.NestedTopBar
+import paige.navic.ui.components.layouts.RootBottomBar
 import paige.navic.ui.components.layouts.RootTopBar
 import paige.navic.ui.components.layouts.artGridPlaceholder
 import paige.navic.ui.viewmodels.ArtistsViewModel
 import paige.navic.utils.UiState
+import paige.navic.utils.withoutTop
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,7 +62,6 @@ fun ArtistsScreen(
 ) {
 	val artistsState by viewModel.artistsState.collectAsState()
 	val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-	val gridState = rememberLazyGridState()
 
 	Scaffold(
 		topBar = {
@@ -68,16 +70,22 @@ fun ArtistsScreen(
 			} else {
 				NestedTopBar({ Text(stringResource(Res.string.title_artists)) })
 			}
-		}
+		},
+		bottomBar = { RootBottomBar(scrolled = viewModel.gridState.lastScrolledForward) }
 	) { innerPadding ->
 		PullToRefreshBox(
-			modifier = Modifier.padding(innerPadding).background(MaterialTheme.colorScheme.surface),
+			modifier = Modifier
+				.padding(top = innerPadding.calculateTopPadding())
+				.background(MaterialTheme.colorScheme.surface),
 			isRefreshing = artistsState is UiState.Loading,
 			onRefresh = { viewModel.refreshArtists() }
 		) {
 			Crossfade(artistsState) {
 				when (it) {
-					is UiState.Loading -> ArtGrid(Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)) {
+					is UiState.Loading -> ArtGrid(
+						Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+						contentPadding = innerPadding.withoutTop()
+					) {
 						artGridPlaceholder()
 					}
 
@@ -97,14 +105,15 @@ fun ArtistsScreen(
 							}
 						}
 
-						Row {
+						Box {
 							ArtGrid(
 								modifier = if (!nested)
-									Modifier.weight(1f).nestedScroll(scrollBehavior.nestedScrollConnection)
-								else Modifier.weight(1f),
-								state = gridState
+									Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection)
+								else Modifier.fillMaxSize(),
+								state = viewModel.gridState,
+								contentPadding = innerPadding.withoutTop()
 							) {
-								stickyHeader { _ ->
+								item(span = { GridItemSpan(maxLineSpan) }) {
 									Row(
 										Modifier
 											.background(MaterialTheme.colorScheme.surface)
@@ -122,7 +131,7 @@ fun ArtistsScreen(
 									}
 								}
 								grouped.forEach { (letter, artists) ->
-									stickyHeader {
+									item(span = { GridItemSpan(maxLineSpan) }) {
 										Row(
 											Modifier
 												.background(MaterialTheme.colorScheme.surface)
@@ -139,13 +148,14 @@ fun ArtistsScreen(
 								}
 							}
 							AlphabeticalScroller(
-								state = gridState,
-								headers = headerIndices
+								state = viewModel.gridState,
+								headers = headerIndices,
+								modifier = Modifier.align(Alignment.TopEnd)
 							)
 						}
 					}
 
-					is UiState.Error -> ErrorBox(it)
+					is UiState.Error -> ErrorBox(it, padding = innerPadding.withoutTop())
 				}
 			}
 		}
@@ -174,8 +184,8 @@ fun ArtistsScreenItem(
 			title = artist.name,
 			subtitle = pluralStringResource(
 				Res.plurals.count_albums,
-				artist.albumCount ?: 0,
-				artist.albumCount ?: 0
+				artist.albumCount,
+				artist.albumCount
 			),
 			id = artist.id,
 			tab = tab

@@ -199,7 +199,6 @@ class Settings(
 	var fontPath by preference("")
 	var animatePlayerBackground by preference(true)
 	var detachedBar by preference(true)
-	var autoHideBar by preference(true)
 	var swipeToSkip by preference(true)
 	var useShortNavbar by preference(false)
 	var showProgressInBar by preference(true)

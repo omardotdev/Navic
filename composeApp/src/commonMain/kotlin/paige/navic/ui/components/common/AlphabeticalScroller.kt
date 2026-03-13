@@ -4,7 +4,6 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.material3.MaterialTheme
@@ -26,12 +25,12 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import paige.navic.LocalContentPadding
 import paige.navic.data.models.Settings
 import kotlin.math.abs
 
 @Composable
 fun AlphabeticalScroller(
+	modifier: Modifier = Modifier,
 	state: LazyGridState,
 	headers: List<Pair<String, Int>>
 ) {
@@ -57,9 +56,8 @@ fun AlphabeticalScroller(
 
 	Column(
 		verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
-		modifier = Modifier
+		modifier = modifier
 			.fillMaxHeight()
-			.padding(bottom = LocalContentPadding.current.calculateBottomPadding())
 			.pointerInput(headers) {
 				detectDragGestures(
 					onDrag = { change, _ -> updateSelection(change.position.y) },

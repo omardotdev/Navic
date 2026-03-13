@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -142,11 +144,13 @@ fun PlayerBar(
 		}
 	) {
 		Box(
-			modifier = Modifier
+			modifier = modifier
+				.widthIn(max = if (detached) 600.dp else Dp.Unspecified)
 				.padding(bottom = outerPadding, start = outerPadding, end = outerPadding)
+				.align(Alignment.Center)
 		) {
 			ListItem(
-				modifier = modifier
+				modifier = Modifier
 					.dropShadow(
 						shape,
 						Shadow(

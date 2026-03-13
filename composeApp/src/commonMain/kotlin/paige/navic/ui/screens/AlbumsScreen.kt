@@ -6,13 +6,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -41,7 +38,6 @@ import navic.composeapp.generated.resources.Res
 import navic.composeapp.generated.resources.action_remove_star
 import navic.composeapp.generated.resources.action_share
 import navic.composeapp.generated.resources.action_star
-import navic.composeapp.generated.resources.info_unknown_artist
 import navic.composeapp.generated.resources.option_sort_alphabetical_by_artist
 import navic.composeapp.generated.resources.option_sort_alphabetical_by_name
 import navic.composeapp.generated.resources.option_sort_frequent
@@ -66,12 +62,14 @@ import paige.navic.ui.components.dialogs.ShareDialog
 import paige.navic.ui.components.layouts.ArtGrid
 import paige.navic.ui.components.layouts.ArtGridItem
 import paige.navic.ui.components.layouts.NestedTopBar
+import paige.navic.ui.components.layouts.RootBottomBar
 import paige.navic.ui.components.layouts.RootTopBar
 import paige.navic.ui.components.layouts.TopBarButton
 import paige.navic.ui.components.layouts.artGridError
 import paige.navic.ui.components.layouts.artGridPlaceholder
 import paige.navic.ui.viewmodels.AlbumsViewModel
 import paige.navic.utils.UiState
+import paige.navic.utils.withoutTop
 import kotlin.time.Duration
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
@@ -87,7 +85,6 @@ fun AlbumsScreen(
 	var shareId by remember { mutableStateOf<String?>(null) }
 	var shareExpiry by remember { mutableStateOf<Duration?>(null) }
 	val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-	val gridState = rememberLazyGridState()
 	val isRefreshing by viewModel.isRefreshing.collectAsState()
 	val isPaginating by viewModel.isPaginating.collectAsState()
 	val actions: @Composable RowScope.() -> Unit = {
@@ -106,7 +103,7 @@ fun AlbumsScreen(
 				NestedTopBar({ Text(stringResource(Res.string.title_albums)) }, actions)
 			}
 		},
-		contentWindowInsets = WindowInsets.statusBars
+		bottomBar = { RootBottomBar(scrolled = viewModel.gridState.lastScrolledForward) }
 	) { innerPadding ->
 		PullToRefreshBox(
 			modifier = Modifier
@@ -115,14 +112,15 @@ fun AlbumsScreen(
 			isRefreshing = isRefreshing || albumsState is UiState.Loading,
 			onRefresh = { viewModel.refreshAlbums() }
 		) {
-			Crossfade(albumsState::class) {
+			Crossfade(albumsState) { state ->
 				ArtGrid(
 					modifier = if (!nested)
 						Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
 					else Modifier,
-					state = gridState
+					state = viewModel.gridState,
+					contentPadding = innerPadding.withoutTop()
 				) {
-					when (val state = albumsState) {
+					when (state) {
 						is UiState.Loading -> artGridPlaceholder()
 						is UiState.Error -> artGridError(state)
 						is UiState.Success -> {
@@ -138,10 +136,10 @@ fun AlbumsScreen(
 								)
 							}
 							item(span = { GridItemSpan(maxLineSpan) }) {
-								LaunchedEffect(gridState) {
-									snapshotFlow { gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+								LaunchedEffect(viewModel.gridState) {
+									snapshotFlow { viewModel.gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
 										.collect { lastVisible ->
-											val totalItems = gridState.layoutInfo.totalItemsCount
+											val totalItems = viewModel.gridState.layoutInfo.totalItemsCount
 											if (lastVisible != null && lastVisible >= totalItems - 1 && !isPaginating) {
 												viewModel.paginate()
 											}

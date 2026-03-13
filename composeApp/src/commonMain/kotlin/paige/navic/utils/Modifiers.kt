@@ -25,7 +25,6 @@ import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.isSecondaryPressed
 import androidx.compose.ui.input.pointer.pointerInput
-import kotlinx.coroutines.delay
 import paige.navic.ui.navigation.EmphasizedDecelerateEasing
 
 @Composable
@@ -33,10 +32,13 @@ fun Modifier.fadeFromTop(): Modifier {
 	var visible by rememberSaveable { mutableStateOf(true) }
 	val progress by animateFloatAsState(
 		targetValue = if (visible) 0f else 1f,
-		animationSpec = tween(durationMillis = 900, easing = EmphasizedDecelerateEasing)
+		animationSpec = tween(
+			durationMillis = 900,
+			delayMillis = 50,
+			easing = EmphasizedDecelerateEasing
+		)
 	)
 	LaunchedEffect(Unit) {
-		delay(25)
 		visible = false
 	}
 	return this then Modifier

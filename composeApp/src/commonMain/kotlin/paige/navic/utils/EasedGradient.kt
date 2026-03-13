@@ -19,7 +19,7 @@ fun Brush.Companion.easedGradient(
 ): Brush {
 	val colors = List(numStops) { i ->
 		val x = i * 1f / (numStops - 1)
-		color.copy(alpha = 1f - easing.transform(x))
+		color.copy(alpha = (1f - easing.transform(x)) * color.alpha)
 	}
 
 	return linearGradient(colors = colors, start = start, end = end)

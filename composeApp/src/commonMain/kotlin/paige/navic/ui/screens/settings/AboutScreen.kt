@@ -1,9 +1,7 @@
 package paige.navic.ui.screens.settings
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.rememberScrollState
@@ -23,7 +21,6 @@ import navic.composeapp.generated.resources.info_app_version
 import navic.composeapp.generated.resources.title_about
 import navic.composeapp.generated.resources.title_acknowledgements
 import org.jetbrains.compose.resources.stringResource
-import paige.navic.LocalContentPadding
 import paige.navic.LocalCtx
 import paige.navic.LocalNavStack
 import paige.navic.data.models.Screen
@@ -76,7 +73,6 @@ fun SettingsAboutScreen() {
 					Icon(Icons.Outlined.ChevronForward, null)
 				}
 			}
-			Spacer(Modifier.height(LocalContentPadding.current.calculateBottomPadding()))
 		}
 	}
 }

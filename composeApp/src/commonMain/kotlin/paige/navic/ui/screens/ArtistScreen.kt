@@ -1,31 +1,39 @@
 package paige.navic.ui.screens
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.minus
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,6 +55,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.buildAnnotatedString
@@ -63,11 +72,12 @@ import navic.composeapp.generated.resources.Res
 import navic.composeapp.generated.resources.action_more
 import navic.composeapp.generated.resources.action_view_on_lastfm
 import navic.composeapp.generated.resources.action_view_on_musicbrainz
+import navic.composeapp.generated.resources.count_albums
 import navic.composeapp.generated.resources.option_sort_frequent
 import navic.composeapp.generated.resources.title_albums
 import navic.composeapp.generated.resources.title_similar_artists
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
-import paige.navic.LocalContentPadding
 import paige.navic.LocalCtx
 import paige.navic.LocalNavStack
 import paige.navic.data.models.Screen
@@ -86,6 +96,7 @@ import paige.navic.ui.components.layouts.ArtCarouselItem
 import paige.navic.ui.components.layouts.ArtGridItem
 import paige.navic.ui.components.layouts.NestedTopBar
 import paige.navic.ui.components.layouts.TopBarButton
+import paige.navic.ui.viewmodels.ArtistState
 import paige.navic.ui.viewmodels.ArtistViewModel
 import paige.navic.utils.UiState
 import paige.navic.utils.fadeFromTop
@@ -98,176 +109,155 @@ fun ArtistScreen(
 ) {
 	val ctx = LocalCtx.current
 	val backStack = LocalNavStack.current
-	val uriHandler = LocalUriHandler.current
+	val layoutDirection = LocalLayoutDirection.current
 	val artistState by viewModel.artistState.collectAsState()
 
 	val spatialSpec = MaterialTheme.motionScheme.slowSpatialSpec<Float>()
 	val effectSpec = MaterialTheme.motionScheme.slowEffectsSpec<Float>()
 
-	Scaffold(
-		topBar = {
-			val state = (artistState as? UiState.Success)?.data
-			if (state != null) {
-				NestedTopBar(
-					colors = TopAppBarDefaults.topAppBarColors(
-						containerColor = Color.Transparent
-					),
-					title = {},
-					actions = {
-						Box {
-							var expanded by remember { mutableStateOf(false) }
-							TopBarButton({
-								expanded = true
-							}) {
-								Icon(
-									Icons.Outlined.MoreVert,
-									stringResource(Res.string.action_more)
-								)
-							}
-							Dropdown(
-								expanded = expanded,
-								onDismissRequest = { expanded = false }
-							) {
-								DropdownItem(
-									text = { Text(stringResource(Res.string.action_view_on_lastfm)) },
-									leadingIcon = { Icon(Icons.Brand.Lastfm, null) },
-									enabled = state.info.lastFmUrl != null,
-									onClick = {
-										expanded = false
-										state.info.lastFmUrl?.let { url ->
-											uriHandler.openUri(url)
-										}
-									}
-								)
-								DropdownItem(
-									text = { Text(stringResource(Res.string.action_view_on_musicbrainz)) },
-									leadingIcon = { Icon(Icons.Brand.Musicbrainz, null) },
-									enabled = state.info.musicBrainzId != null,
-									onClick = {
-										expanded = false
-										state.info.musicBrainzId?.let { id ->
-											uriHandler.openUri(
-												"https://musicbrainz.org/artist/$id"
-											)
-										}
-									}
-								)
-							}
-						}
-					}
+	SharedTransitionLayout {
+		Scaffold(
+			topBar = {
+				ArtistScreenTopBar(
+					scrollState = viewModel.scrollState,
+					artistState = artistState,
+					sharedTransitionScope = this@SharedTransitionLayout
 				)
-			} else {
-				NestedTopBar({})
 			}
-		}
-	) { innerPadding ->
-		AnimatedContent(
-			targetState = artistState,
-			transitionSpec = {
-				(fadeIn(
-					animationSpec = effectSpec
-				) + scaleIn(
-					initialScale = 0.8f,
-					animationSpec = spatialSpec
-				)) togetherWith (fadeOut(
-					animationSpec = effectSpec
-				) + scaleOut(
-					animationSpec = spatialSpec
-				))
-			},
-			modifier = Modifier
-				.fillMaxSize()
-				.padding(innerPadding - PaddingValues(top = innerPadding.calculateTopPadding()))
-		) {
-			when (it) {
-				is UiState.Error -> Box(Modifier.fillMaxSize()) {
-					ErrorBox(it)
-				}
-				is UiState.Loading -> Box(Modifier.fillMaxSize()) {
-					ContainedLoadingIndicator(Modifier.size(80.dp).align(Alignment.Center))
-				}
-				is UiState.Success -> {
-					val state = it.data
-					Column(
-						modifier = Modifier
-							.fillMaxSize()
-							.verticalScroll(rememberScrollState())
-							.fadeFromTop(),
-						verticalArrangement = Arrangement.spacedBy(12.dp),
-						horizontalAlignment = Alignment.CenterHorizontally
-					) {
-						ArtistHeader(
-							artistName = state.artist.name,
-							coverArt = state.artist.coverArtId,
-							subtitle = (artistState as? UiState.Success)?.data?.info?.biography,
-							lastfm = (artistState as? UiState.Success)?.data?.info?.lastFmUrl
-						)
-						state.topSongs.takeIf { state.topSongs.isNotEmpty() }?.let { songs ->
-							Text(
-								stringResource(Res.string.option_sort_frequent),
-								style = MaterialTheme.typography.titleMediumEmphasized,
-								fontWeight = FontWeight(600),
-								modifier = Modifier
-									.heightIn(min = 32.dp)
-									.padding(top = 8.dp)
-									.padding(horizontal = 20.dp)
-									.fillMaxWidth()
-							)
-							LazyHorizontalGrid(
-								rows = GridCells.Fixed(3),
-								modifier = Modifier.fillMaxWidth().height(250.dp)
-							) {
-								items(songs) { song ->
-									TrackRow(
-										modifier = Modifier.weight(1f),
-										track = song
-									)
-								}
-							}
-						}
-						state.artist.album?.let { albums ->
-							ArtCarousel(
-								Res.string.title_albums,
-								albums.sortedByDescending { it.playCount }
-							) { album ->
-								ArtCarouselItem(album.coverArtId, album.name) {
-									backStack.add(Screen.Tracks(album, "artist"))
-								}
-							}
-						}
-						Text(
-							stringResource(Res.string.title_similar_artists),
-							style = MaterialTheme.typography.titleMediumEmphasized,
-							fontWeight = FontWeight(600),
-							modifier = Modifier
-								.height(32.dp)
-								.padding(top = 8.dp)
-								.padding(horizontal = 20.dp)
-								.fillMaxWidth()
-						)
-						LazyRow(
-							modifier = Modifier.fillMaxWidth().animateContentSize(
-								animationSpec = MaterialTheme.motionScheme.fastSpatialSpec()
-							),
-							horizontalArrangement = Arrangement.spacedBy(8.dp),
-							contentPadding = PaddingValues(horizontal = 20.dp)
-						) {
-							items(state.info.similarArtists) { artist ->
-								ArtGridItem(
-									imageModifier = Modifier.size(150.dp),
-									onClick = {
-										ctx.clickSound()
-										backStack.add(Screen.Artist(artist.id))
-									},
-									coverArt = artist.coverArtId,
-									title = artist.name,
-									id = artist.id,
-									tab = "artist"
-								)
-							}
-						}
+		) { contentPadding ->
+			AnimatedContent(
+				targetState = artistState,
+				transitionSpec = {
+					(fadeIn(
+						animationSpec = effectSpec
+					) + scaleIn(
+						initialScale = 0.8f,
+						animationSpec = spatialSpec
+					)) togetherWith (fadeOut(
+						animationSpec = effectSpec
+					) + scaleOut(
+						animationSpec = spatialSpec
+					))
+				},
+				modifier = Modifier.fillMaxSize()
+			) {
+				when (it) {
+					is UiState.Error -> Box(Modifier.fillMaxSize()) {
+						ErrorBox(it)
+					}
 
-						Spacer(Modifier.height(LocalContentPadding.current.calculateBottomPadding()))
+					is UiState.Loading -> Box(Modifier.fillMaxSize()) {
+						ContainedLoadingIndicator(Modifier.size(80.dp).align(Alignment.Center))
+					}
+
+					is UiState.Success -> {
+						val state = it.data
+						Column(
+							modifier = Modifier
+								.fillMaxSize()
+								.verticalScroll(viewModel.scrollState),
+							verticalArrangement = Arrangement.spacedBy(12.dp),
+							horizontalAlignment = Alignment.CenterHorizontally
+						) {
+							ArtistScreenHeader(
+								artistName = state.artist.name,
+								coverArt = state.artist.coverArtId,
+								subtitle = (artistState as? UiState.Success)?.data?.info?.biography,
+								lastfm = (artistState as? UiState.Success)?.data?.info?.lastFmUrl,
+								innerPadding = contentPadding,
+								scrollState = viewModel.scrollState,
+								sharedTransitionScope = this@SharedTransitionLayout
+							)
+							Column(
+								modifier = Modifier
+									.fillMaxWidth()
+									.padding(
+										start = contentPadding.calculateStartPadding(
+											layoutDirection
+										)
+									)
+									.padding(
+										end = contentPadding.calculateEndPadding(
+											layoutDirection
+										)
+									)
+									.fadeFromTop(),
+								verticalArrangement = Arrangement.spacedBy(12.dp),
+								horizontalAlignment = Alignment.CenterHorizontally
+							) {
+								state.topSongs.takeIf { state.topSongs.isNotEmpty() }
+									?.let { songs ->
+										Text(
+											stringResource(Res.string.option_sort_frequent),
+											style = MaterialTheme.typography.titleMediumEmphasized,
+											fontWeight = FontWeight(600),
+											modifier = Modifier
+												.heightIn(min = 32.dp)
+												.padding(top = 8.dp)
+												.padding(horizontal = 20.dp)
+												.fillMaxWidth()
+										)
+										LazyHorizontalGrid(
+											rows = GridCells.Fixed(3),
+											modifier = Modifier.fillMaxWidth().height(250.dp)
+										) {
+											items(songs) { song ->
+												TrackRow(
+													modifier = Modifier.weight(1f),
+													track = song
+												)
+											}
+										}
+									}
+								state.artist.album.let { albums ->
+									ArtCarousel(
+										Res.string.title_albums,
+										albums.sortedByDescending { it.playCount }
+									) { album ->
+										ArtCarouselItem(album.coverArtId, album.name) {
+											backStack.add(Screen.Tracks(album, "artist"))
+										}
+									}
+								}
+								Text(
+									stringResource(Res.string.title_similar_artists),
+									style = MaterialTheme.typography.titleMediumEmphasized,
+									fontWeight = FontWeight(600),
+									modifier = Modifier
+										.height(32.dp)
+										.padding(top = 8.dp)
+										.padding(horizontal = 20.dp)
+										.fillMaxWidth()
+								)
+								LazyRow(
+									modifier = Modifier.fillMaxWidth().animateContentSize(
+										animationSpec = MaterialTheme.motionScheme.fastSpatialSpec()
+									),
+									horizontalArrangement = Arrangement.spacedBy(8.dp),
+									contentPadding = PaddingValues(horizontal = 20.dp)
+								) {
+									items(state.similarArtists) { artist ->
+										ArtGridItem(
+											modifier = Modifier.width(150.dp),
+											onClick = {
+												ctx.clickSound()
+												backStack.add(Screen.Artist(artist.id))
+											},
+											coverArt = artist.coverArtId,
+											title = artist.name,
+											subtitle = pluralStringResource(
+												Res.plurals.count_albums,
+												artist.albumCount,
+												artist.albumCount
+											),
+											id = artist.id,
+											tab = "artist"
+										)
+									}
+								}
+							}
+							Spacer(Modifier.height(contentPadding.calculateBottomPadding()))
+						}
 					}
 				}
 			}
@@ -285,12 +275,16 @@ fun truncateText(text: String, limit: Int): String {
 
 
 @Composable
-fun ArtistHeader(
+private fun ArtistScreenHeader(
 	artistName: String,
 	coverArt: String?,
 	subtitle: String?,
-	lastfm: String?
+	lastfm: String?,
+	innerPadding: PaddingValues,
+	scrollState: ScrollState,
+	sharedTransitionScope: SharedTransitionScope
 ) {
+	val layoutDirection = LocalLayoutDirection.current
 	val platformContext = LocalPlatformContext.current
 	val model = remember(coverArt) {
 		ImageRequest.Builder(platformContext)
@@ -302,64 +296,156 @@ fun ArtistHeader(
 			.crossfade(500)
 			.build()
 	}
-	Box(
-		modifier = Modifier
-			.fillMaxWidth()
-			.height(400.dp)
-			.background(MaterialTheme.colorScheme.surfaceContainer)
-	) {
-		AsyncImage(
-			model = model,
-			contentDescription = null,
-			contentScale = ContentScale.Crop,
-			modifier = Modifier.fillMaxSize()
-		)
-		Box(
-			modifier = Modifier
-				.fillMaxSize()
-				.background(
-					Brush.linearGradient(
-						colors = listOf(Color.Black, Color.Transparent),
-						start = Offset(0f, Float.POSITIVE_INFINITY),
-						end = Offset(Float.POSITIVE_INFINITY, 0f)
-					)
-				)
-		)
-		Box(
-			modifier = Modifier
-				.align(Alignment.BottomCenter)
-				.fillMaxWidth()
-				.height(2.dp)
-				.background(Color.White.copy(alpha = .1f))
-		)
-
-		Column(
-			modifier = Modifier
-				.align(Alignment.BottomStart)
-				.padding(horizontal = 20.dp, vertical = 24.dp),
-			verticalArrangement = Arrangement.spacedBy(8.dp)
+	with(sharedTransitionScope) {
+		BoxWithConstraints(
+			modifier = Modifier.fillMaxWidth()
 		) {
-			subtitle?.let { subtitle ->
-				Text(
-					text = buildAnnotatedString {
-						append(truncateText(subtitle, 200))
-						if (subtitle.length > 200 && lastfm != null) {
-							append(" ")
-							withLink(LinkAnnotation.Url(lastfm)) {
-								append(stringResource(Res.string.action_more))
-							}
-						}
-					},
-					style = MaterialTheme.typography.bodySmall,
-					color = Color.LightGray
+			Box(
+				modifier = Modifier
+					.fillMaxWidth()
+					.height((400.dp / (maxWidth / 300.dp)) + innerPadding.calculateTopPadding())
+					.background(MaterialTheme.colorScheme.surfaceContainer)
+			) {
+				AsyncImage(
+					model = model,
+					contentDescription = null,
+					contentScale = ContentScale.Crop,
+					modifier = Modifier.fillMaxSize()
 				)
+				Box(
+					modifier = Modifier
+						.fillMaxSize()
+						.background(
+							Brush.linearGradient(
+								colors = listOf(Color.Black, Color.Transparent),
+								start = Offset(0f, Float.POSITIVE_INFINITY),
+								end = Offset(Float.POSITIVE_INFINITY, 0f)
+							)
+						)
+				)
+				Box(
+					modifier = Modifier
+						.align(Alignment.BottomCenter)
+						.fillMaxWidth()
+						.height(2.dp)
+						.background(Color.White.copy(alpha = .1f))
+				)
+
+				Column(
+					modifier = Modifier
+						.align(Alignment.BottomStart)
+						.padding(horizontal = 20.dp, vertical = 24.dp)
+						.padding(start = innerPadding.calculateStartPadding(layoutDirection))
+						.padding(end = innerPadding.calculateEndPadding(layoutDirection)),
+					verticalArrangement = Arrangement.spacedBy(8.dp)
+				) {
+					subtitle?.let { subtitle ->
+						Text(
+							text = buildAnnotatedString {
+								append(truncateText(subtitle, 200))
+								if (subtitle.length > 200 && lastfm != null) {
+									append(" ")
+									withLink(LinkAnnotation.Url(lastfm)) {
+										append(stringResource(Res.string.action_more))
+									}
+								}
+							},
+							style = MaterialTheme.typography.bodySmall,
+							color = Color.LightGray,
+							modifier = Modifier.widthIn(max = 500.dp)
+						)
+					}
+					AnimatedVisibility(!scrollState.canScrollBackward) {
+						Text(
+							text = artistName,
+							style = MaterialTheme.typography.displaySmall,
+							fontWeight = FontWeight.Bold,
+							color = Color.White,
+							modifier = Modifier.sharedBounds(
+								sharedContentState = rememberSharedContentState("name"),
+								animatedVisibilityScope = this@AnimatedVisibility
+							)
+						)
+					}
+				}
 			}
-			Text(
-				text = artistName,
-				style = MaterialTheme.typography.displaySmall,
-				fontWeight = FontWeight.Bold,
-				color = Color.White
-			)
 		}
+	}
+}
+
+@Composable
+private fun ArtistScreenTopBar(
+	scrollState: ScrollState,
+	artistState: UiState<ArtistState>,
+	sharedTransitionScope: SharedTransitionScope
+) {
+	val uriHandler = LocalUriHandler.current
+	val state = (artistState as? UiState.Success)?.data
+	val alpha by animateFloatAsState(
+		if (scrollState.canScrollBackward) 1f else 0f
+	)
+	if (state != null) {
+		NestedTopBar(
+			colors = TopAppBarDefaults.topAppBarColors(
+				containerColor = MaterialTheme.colorScheme.surface.copy(alpha = alpha)
+			),
+			title = {
+				AnimatedVisibility(scrollState.canScrollBackward) {
+					with(sharedTransitionScope) {
+						Text(
+							state.artist.name,
+							modifier = Modifier.sharedBounds(
+								sharedContentState = rememberSharedContentState("name"),
+								animatedVisibilityScope = this@AnimatedVisibility
+							)
+						)
+					}
+				}
+			},
+			actions = {
+				Box {
+					var expanded by remember { mutableStateOf(false) }
+					TopBarButton({
+						expanded = true
+					}) {
+						Icon(
+							Icons.Outlined.MoreVert,
+							stringResource(Res.string.action_more)
+						)
+					}
+					Dropdown(
+						expanded = expanded,
+						onDismissRequest = { expanded = false }
+					) {
+						DropdownItem(
+							text = { Text(stringResource(Res.string.action_view_on_lastfm)) },
+							leadingIcon = { Icon(Icons.Brand.Lastfm, null) },
+							enabled = state.info.lastFmUrl != null,
+							onClick = {
+								expanded = false
+								state.info.lastFmUrl?.let { url ->
+									uriHandler.openUri(url)
+								}
+							}
+						)
+						DropdownItem(
+							text = { Text(stringResource(Res.string.action_view_on_musicbrainz)) },
+							leadingIcon = { Icon(Icons.Brand.Musicbrainz, null) },
+							enabled = state.info.musicBrainzId != null,
+							onClick = {
+								expanded = false
+								state.info.musicBrainzId?.let { id ->
+									uriHandler.openUri(
+										"https://musicbrainz.org/artist/$id"
+									)
+								}
+							}
+						)
+					}
+				}
+			}
+		)
+	} else {
+		NestedTopBar({})
 	}
 }

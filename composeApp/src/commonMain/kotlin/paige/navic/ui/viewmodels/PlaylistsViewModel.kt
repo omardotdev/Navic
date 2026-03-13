@@ -1,5 +1,6 @@
 package paige.navic.ui.viewmodels
 
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.zt64.subsonic.api.model.Playlist
@@ -22,6 +23,8 @@ class PlaylistsViewModel(
 
 	private val _selectedPlaylist = MutableStateFlow<Playlist?>(null)
 	val selectedPlaylist: StateFlow<Playlist?> = _selectedPlaylist.asStateFlow()
+
+	val gridState = LazyGridState()
 
 	init {
 		viewModelScope.launch {
