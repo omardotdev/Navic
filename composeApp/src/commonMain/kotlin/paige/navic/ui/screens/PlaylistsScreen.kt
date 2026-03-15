@@ -6,10 +6,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumFloatingActionButton
 import androidx.compose.material3.Scaffold
@@ -31,19 +31,26 @@ import navic.composeapp.generated.resources.Res
 import navic.composeapp.generated.resources.action_delete
 import navic.composeapp.generated.resources.action_share
 import navic.composeapp.generated.resources.count_songs
+import navic.composeapp.generated.resources.option_sort_ascending
+import navic.composeapp.generated.resources.option_sort_descending
 import navic.composeapp.generated.resources.title_create_playlist
 import navic.composeapp.generated.resources.title_playlists
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import paige.navic.LocalCtx
 import paige.navic.LocalNavStack
+import paige.navic.data.models.PlaylistSortMode
 import paige.navic.data.models.Screen
+import paige.navic.data.models.Settings
 import paige.navic.icons.Icons
 import paige.navic.icons.outlined.Add
 import paige.navic.icons.outlined.PlaylistRemove
 import paige.navic.icons.outlined.Share
+import paige.navic.icons.outlined.Sort
 import paige.navic.ui.components.common.Dropdown
 import paige.navic.ui.components.common.DropdownItem
+import paige.navic.ui.components.common.SelectionDropdown
+import paige.navic.ui.components.common.SelectionDropdownItem
 import paige.navic.ui.components.dialogs.DeletionDialog
 import paige.navic.ui.components.dialogs.DeletionEndpoint
 import paige.navic.ui.components.dialogs.ShareDialog
@@ -52,6 +59,7 @@ import paige.navic.ui.components.layouts.ArtGridItem
 import paige.navic.ui.components.layouts.NestedTopBar
 import paige.navic.ui.components.layouts.RootBottomBar
 import paige.navic.ui.components.layouts.RootTopBar
+import paige.navic.ui.components.layouts.TopBarButton
 import paige.navic.ui.components.layouts.artGridError
 import paige.navic.ui.components.layouts.artGridPlaceholder
 import paige.navic.ui.viewmodels.PlaylistsViewModel
@@ -79,9 +87,16 @@ fun PlaylistsScreen(
 	Scaffold(
 		topBar = {
 			if (!nested) {
-				RootTopBar({ Text(stringResource(Res.string.title_playlists)) }, scrollBehavior)
+				RootTopBar(
+					title = { Text(stringResource(Res.string.title_playlists)) },
+					scrollBehavior = scrollBehavior,
+					actions = { SortButton(!nested, viewModel) }
+				)
 			} else {
-				NestedTopBar({ Text(stringResource(Res.string.title_playlists)) })
+				NestedTopBar(
+					title = { Text(stringResource(Res.string.title_playlists)) },
+					actions = { SortButton(!nested, viewModel) }
+				)
 			}
 		},
 		floatingActionButton = {
@@ -156,6 +171,70 @@ fun PlaylistsScreen(
 		id = deletionId,
 		onIdClear = { deletionId = null }
 	)
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun SortButton(
+	root: Boolean,
+	viewModel: PlaylistsViewModel
+) {
+	val items = remember { PlaylistSortMode.entries }
+	Box {
+		var expanded by remember { mutableStateOf(false) }
+		if (root) {
+			IconButton(onClick = {
+				expanded = true
+			}) {
+				Icon(
+					Icons.Outlined.Sort,
+					contentDescription = null
+				)
+			}
+		} else {
+			TopBarButton({
+				expanded = true
+			}) {
+				Icon(
+					Icons.Outlined.Sort,
+					contentDescription = null
+				)
+			}
+		}
+		SelectionDropdown(
+			items = items,
+			label = { stringResource(it.displayName) },
+			expanded = expanded,
+			onDismissRequest = { expanded = false },
+			selection = Settings.shared.playlistSortMode,
+			onSelect = {
+				Settings.shared.playlistSortMode = it
+				viewModel.sortPlaylists()
+			},
+			footer = {
+				SelectionDropdownItem(
+					label = stringResource(Res.string.option_sort_ascending),
+					selected = !Settings.shared.playlistsReversed,
+					index = 5,
+					onClick = {
+						Settings.shared.playlistsReversed = false
+						expanded = false
+						viewModel.sortPlaylists()
+					}
+				)
+				SelectionDropdownItem(
+					label = stringResource(Res.string.option_sort_descending),
+					selected = Settings.shared.playlistsReversed,
+					index = 4,
+					onClick = {
+						Settings.shared.playlistsReversed = true
+						expanded = false
+						viewModel.sortPlaylists()
+					}
+				)
+			}
+		)
+	}
 }
 
 @Composable

@@ -33,6 +33,7 @@ class CreatePlaylistViewModel(
 					songs = tracks
 				)
 				_events.send(Event.Dismiss(playlist))
+				_creationState.value = UiState.Success(null)
 			} catch (e: Exception) {
 				_creationState.value = UiState.Error(e)
 			}

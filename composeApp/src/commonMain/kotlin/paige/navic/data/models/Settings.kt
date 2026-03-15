@@ -1,4 +1,4 @@
-// Mostly taken from https://github.com/zt64/tau/blob/main/core/src/main/kotlin/dev/zt64/tau/domain/manager/PreferencesManager.kt
+// Adapted from https://github.com/zt64/tau/blob/main/core/src/main/kotlin/dev/zt64/tau/domain/manager/PreferencesManager.kt
 // Copyright (c) 2025 zt64
 // SPDX-License-Identifier: GPL-3.0
 
@@ -221,6 +221,8 @@ class Settings(
 	var windowSizeX by preference(800f)
 	var windowSizeY by preference(600f)
 	var nowPlayingToolbarPosition by preference(ToolbarPosition.Bottom)
+	var playlistSortMode by preference(PlaylistSortMode.DateAdded)
+	var playlistsReversed by preference(false)
 
 	/**
 	 * If we have informed the user (on Android) about

@@ -8,9 +8,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import paige.navic.data.models.Settings
 import paige.navic.data.repositories.PlaylistsRepository
 import paige.navic.data.session.SessionManager
 import paige.navic.utils.UiState
+import paige.navic.utils.sortedByMode
 
 class PlaylistsViewModel(
 	private val repository: PlaylistsRepository = PlaylistsRepository()
@@ -28,9 +30,8 @@ class PlaylistsViewModel(
 
 	init {
 		viewModelScope.launch {
-			SessionManager.isLoggedIn.collect {
-				refreshPlaylists()
-			}
+			SessionManager.isLoggedIn
+				.collect { refreshPlaylists() }
 		}
 	}
 
@@ -56,6 +57,7 @@ class PlaylistsViewModel(
 			try {
 				val playlists = repository.getPlaylists()
 				_playlistsState.value = UiState.Success(playlists)
+				sortPlaylists()
 			} catch (e: Exception) {
 				if (!hasData) {
 					_playlistsState.value = UiState.Error(e)
@@ -64,5 +66,13 @@ class PlaylistsViewModel(
 				_isRefreshing.value = false
 			}
 		}
+	}
+
+	fun sortPlaylists() {
+		val playlists = (_playlistsState.value as? UiState.Success)?.data?.sortedByMode(
+			Settings.shared.playlistSortMode,
+			Settings.shared.playlistsReversed
+		) ?: return
+		_playlistsState.value = UiState.Success(playlists)
 	}
 }

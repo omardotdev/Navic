@@ -1,7 +1,6 @@
 package paige.navic.ui.components.common
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -13,7 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -57,6 +56,7 @@ fun <Item> SelectionDropdown(
 	selection: Item,
 	onSelect: (item: Item) -> Unit,
 	expanded: Boolean,
+	footer: (@Composable () -> Unit)? = null,
 	onDismissRequest: () -> Unit
 ) {
 	CompositionLocalProvider(
@@ -74,6 +74,7 @@ fun <Item> SelectionDropdown(
 			Surface(
 				modifier = Modifier
 					.wrapContentSize()
+					.widthIn(min = 200.dp)
 					.heightIn(max = 600.dp)
 					.padding(top = 4.dp)
 					.padding(bottom = 8.dp)
@@ -102,6 +103,10 @@ fun <Item> SelectionDropdown(
 							HorizontalDivider(color = MaterialTheme.colorScheme.surfaceContainerHighest)
 						}
 					}
+					if (footer != null) {
+						HorizontalDivider()
+						footer()
+					}
 				}
 			}
 		}
@@ -110,7 +115,7 @@ fun <Item> SelectionDropdown(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun SelectionDropdownItem(
+fun SelectionDropdownItem(
 	label: String,
 	selected: Boolean,
 	index: Int,

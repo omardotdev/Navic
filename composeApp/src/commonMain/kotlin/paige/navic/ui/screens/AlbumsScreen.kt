@@ -168,7 +168,7 @@ fun AlbumsScreen(
 }
 
 @Composable
-fun SortButton(
+private fun SortButton(
 	root: Boolean,
 	viewModel: AlbumsViewModel
 ) {
