@@ -1,4 +1,4 @@
-package paige.navic.ui.screens.player.components.controls
+package paige.navic.ui.screens.nowPlaying.components.controls
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.snap
@@ -20,7 +20,7 @@ import paige.navic.data.models.settings.Settings
 import paige.navic.data.models.settings.enums.PlayerSliderStyle
 
 @Composable
-fun PlayerProgressBar() {
+fun NowPlayingProgressBar() {
 	val player = LocalMediaPlayer.current
 	val playerState by player.uiState.collectAsState()
 	val waveHeight by animateDpAsState(

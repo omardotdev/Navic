@@ -19,11 +19,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import navic.composeapp.generated.resources.Res
 import navic.composeapp.generated.resources.option_now_playing_toolbar_position
-import navic.composeapp.generated.resources.option_player_background_style
-import navic.composeapp.generated.resources.option_player_background_style_description
-import navic.composeapp.generated.resources.option_player_slider_style
+import navic.composeapp.generated.resources.option_now_playing_background_style
+import navic.composeapp.generated.resources.subtitle_now_playing_background_style
+import navic.composeapp.generated.resources.option_now_playing_slider_style
 import navic.composeapp.generated.resources.option_swipe_to_skip
-import navic.composeapp.generated.resources.title_player
+import navic.composeapp.generated.resources.title_now_playing
 import org.jetbrains.compose.resources.stringResource
 import paige.navic.LocalCtx
 import paige.navic.data.models.settings.Settings
@@ -43,7 +43,7 @@ fun SettingsNowPlayingScreen() {
 
 	Scaffold(
 		topBar = { NestedTopBar(
-			{ Text(stringResource(Res.string.title_player)) },
+			{ Text(stringResource(Res.string.title_now_playing)) },
 			hideBack = ctx.sizeClass.widthSizeClass >= WindowWidthSizeClass.Medium
 		) }
 	) { innerPadding ->
@@ -69,8 +69,8 @@ fun SettingsNowPlayingScreen() {
 						label = { stringResource(it.displayName) },
 						selection = Settings.shared.playerBackgroundStyle,
 						onSelect = { Settings.shared.playerBackgroundStyle = it },
-						description = stringResource(Res.string.option_player_background_style_description),
-						title = { Text(stringResource(Res.string.option_player_background_style)) }
+						description = stringResource(Res.string.subtitle_now_playing_background_style),
+						title = { Text(stringResource(Res.string.option_now_playing_background_style)) }
 					)
 
 					var showSliderStyleDialog by rememberSaveable { mutableStateOf(false) }
@@ -80,7 +80,7 @@ fun SettingsNowPlayingScreen() {
 						}
 					) {
 						Column(Modifier.weight(1f)) {
-							Text(stringResource(Res.string.option_player_slider_style))
+							Text(stringResource(Res.string.option_now_playing_slider_style))
 							Text(
 								stringResource(Settings.shared.playerSliderStyle.displayName),
 								style = MaterialTheme.typography.bodyMedium,

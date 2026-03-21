@@ -1,4 +1,4 @@
-package paige.navic.ui.screens.player.components.rows
+package paige.navic.ui.screens.nowPlaying.components.rows
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -19,10 +19,10 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
-import paige.navic.ui.screens.player.components.controls.PlayerProgressBar
+import paige.navic.ui.screens.nowPlaying.components.controls.NowPlayingProgressBar
 
 @Composable
-fun PlayerControlsRow(
+fun NowPlayingControlsRow(
 	modifier: Modifier = Modifier,
 	isLandscape: Boolean
 ) {
@@ -41,11 +41,11 @@ fun PlayerControlsRow(
 		verticalArrangement = Arrangement.Center
 	) {
 		Column {
-			PlayerInfoRow()
-			PlayerProgressBar()
-			PlayerDurationsRow()
+			NowPlayingInfoRow()
+			NowPlayingProgressBar()
+			NowPlayingDurationsRow()
 		}
 		Spacer(modifier = Modifier.height(if (isLandscape) 24.dp else 30.dp))
-		PlayerButtonsRow()
+		NowPlayingButtonsRow()
 	}
 }

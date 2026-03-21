@@ -29,7 +29,7 @@ import ir.mahozad.multiplatform.wavyslider.material3.WaveAnimationSpecs
 import ir.mahozad.multiplatform.wavyslider.material3.WavySlider
 import navic.composeapp.generated.resources.Res
 import navic.composeapp.generated.resources.action_ok
-import navic.composeapp.generated.resources.option_player_slider_style
+import navic.composeapp.generated.resources.option_now_playing_slider_style
 import org.jetbrains.compose.resources.stringResource
 import paige.navic.LocalCtx
 import paige.navic.data.models.settings.Settings
@@ -47,7 +47,7 @@ fun PlayerSliderStyleDialog(
 
 	AlertDialog(
 		title = {
-			Text(stringResource(Res.string.option_player_slider_style))
+			Text(stringResource(Res.string.option_now_playing_slider_style))
 		},
 		text = {
 			LazyVerticalGrid(

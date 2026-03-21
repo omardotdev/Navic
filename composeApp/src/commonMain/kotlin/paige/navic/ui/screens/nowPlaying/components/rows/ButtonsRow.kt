@@ -1,4 +1,4 @@
-package paige.navic.ui.screens.player.components.rows
+package paige.navic.ui.screens.nowPlaying.components.rows
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Animatable
@@ -46,7 +46,7 @@ import paige.navic.icons.outlined.Shuffle
 import paige.navic.ui.components.common.playPauseIconPainter
 
 @Composable
-fun PlayerButtonsRow() {
+fun NowPlayingButtonsRow() {
 	val ctx = LocalCtx.current
 	val player = LocalMediaPlayer.current
 	val playerState by player.uiState.collectAsState()

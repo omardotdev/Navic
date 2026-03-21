@@ -1,4 +1,4 @@
-package paige.navic.ui.screens.player.components.rows
+package paige.navic.ui.screens.nowPlaying.components.rows
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,7 +17,7 @@ import paige.navic.utils.toHoursMinutesSeconds
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
-fun PlayerDurationsRow() {
+fun NowPlayingDurationsRow() {
 	val player = LocalMediaPlayer.current
 	val playerState by player.uiState.collectAsState()
 	val duration = playerState.currentTrack?.duration

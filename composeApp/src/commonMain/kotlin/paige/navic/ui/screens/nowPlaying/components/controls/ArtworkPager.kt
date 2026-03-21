@@ -1,4 +1,4 @@
-package paige.navic.ui.screens.player.components.controls
+package paige.navic.ui.screens.nowPlaying.components.controls
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,10 +15,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import paige.navic.LocalMediaPlayer
 import paige.navic.data.models.settings.Settings
-import paige.navic.ui.screens.player.components.PlayerArtwork
+import paige.navic.ui.screens.nowPlaying.components.NowPlayingArtwork
 
 @Composable
-fun PlayerArtworkPager(
+fun NowPlayingArtworkPager(
 	modifier: Modifier = Modifier,
 	isLandscape: Boolean
 ) {
@@ -60,7 +60,7 @@ fun PlayerArtworkPager(
 			modifier = Modifier.fillMaxSize(),
 			contentAlignment = Alignment.Center
 		) {
-			PlayerArtwork(
+			NowPlayingArtwork(
 				track = track,
 				isLandscape = isLandscape
 			)

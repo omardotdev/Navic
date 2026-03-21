@@ -1,4 +1,4 @@
-package paige.navic.ui.screens.player.components.controls
+package paige.navic.ui.screens.nowPlaying.components.controls
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
@@ -37,7 +37,7 @@ import paige.navic.ui.components.common.Dropdown
 import paige.navic.ui.components.common.DropdownItem
 
 @Composable
-fun PlayerMoreButton() {
+fun NowPlayingMoreButton() {
 	val backStack = LocalNavStack.current
 	val ctx = LocalCtx.current
 	val player = LocalMediaPlayer.current
@@ -67,7 +67,7 @@ fun PlayerMoreButton() {
 				onClick = {
 					playerState.currentCollection?.let { tracks ->
 						expanded = false
-						backStack.remove(Screen.Player)
+						backStack.remove(Screen.NowPlaying)
 						backStack.add(Screen.Tracks(tracks, ""))
 					}
 				},
@@ -87,7 +87,7 @@ fun PlayerMoreButton() {
 				onClick = {
 					track?.artistId?.let { artistId ->
 						expanded = false
-						backStack.remove(Screen.Player)
+						backStack.remove(Screen.NowPlaying)
 						backStack.add(Screen.Artist(artistId))
 					}
 				},
@@ -98,7 +98,7 @@ fun PlayerMoreButton() {
 				onClick = {
 					track?.let { track ->
 						expanded = false
-						backStack.remove(Screen.Player)
+						backStack.remove(Screen.NowPlaying)
 						backStack.add(Screen.AddToPlaylist(listOf(track)))
 					}
 				},
@@ -109,7 +109,7 @@ fun PlayerMoreButton() {
 				onClick = {
 					track?.let { track ->
 						expanded = false
-						backStack.remove(Screen.Player)
+						backStack.remove(Screen.NowPlaying)
 						backStack.add(Screen.TrackInfo(track))
 					}
 				},

@@ -1,4 +1,4 @@
-package paige.navic.ui.screens.player.components.controls
+package paige.navic.ui.screens.nowPlaying.components.controls
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -23,7 +23,7 @@ import paige.navic.icons.filled.Star
 import paige.navic.icons.outlined.Star
 
 @Composable
-fun PlayerStarButton() {
+fun NowPlayingStarButton() {
 	val player = LocalMediaPlayer.current
 	val playerState by player.uiState.collectAsState()
 	var isStarred by remember(playerState.currentTrack) {

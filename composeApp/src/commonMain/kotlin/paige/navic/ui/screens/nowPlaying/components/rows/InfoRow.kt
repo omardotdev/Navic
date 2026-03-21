@@ -1,4 +1,4 @@
-package paige.navic.ui.screens.player.components.rows
+package paige.navic.ui.screens.nowPlaying.components.rows
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,11 +19,11 @@ import paige.navic.LocalMediaPlayer
 import paige.navic.LocalNavStack
 import paige.navic.data.models.Screen
 import paige.navic.ui.components.common.MarqueeText
-import paige.navic.ui.screens.player.components.controls.PlayerMoreButton
-import paige.navic.ui.screens.player.components.controls.PlayerStarButton
+import paige.navic.ui.screens.nowPlaying.components.controls.NowPlayingMoreButton
+import paige.navic.ui.screens.nowPlaying.components.controls.NowPlayingStarButton
 
 @Composable
-fun PlayerInfoRow() {
+fun NowPlayingInfoRow() {
 	val backStack = LocalNavStack.current
 	val player = LocalMediaPlayer.current
 	val playerState by player.uiState.collectAsState()
@@ -69,7 +69,7 @@ fun PlayerInfoRow() {
 			MarqueeText(
 				modifier = Modifier.clickable(track != null) {
 					track?.artistId?.let { id ->
-						backStack.remove(Screen.Player)
+						backStack.remove(Screen.NowPlaying)
 						backStack.add(Screen.Artist(id))
 					}
 				},
@@ -84,8 +84,8 @@ fun PlayerInfoRow() {
 		Row(
 			horizontalArrangement = Arrangement.spacedBy(10.dp)
 		) {
-			PlayerStarButton()
-			PlayerMoreButton()
+			NowPlayingStarButton()
+			NowPlayingMoreButton()
 		}
 	}
 }

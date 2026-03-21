@@ -142,8 +142,8 @@ fun PlayerBar(
 	)
 
 	val onClick = {
-		if (!backStack.contains(Screen.Player)) {
-			backStack.add(Screen.Player)
+		if (!backStack.contains(Screen.NowPlaying)) {
+			backStack.add(Screen.NowPlaying)
 		}
 	}
 

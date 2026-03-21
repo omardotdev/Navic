@@ -1,4 +1,4 @@
-package paige.navic.ui.screens.player
+package paige.navic.ui.screens.nowPlaying
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,19 +27,19 @@ import paige.navic.data.models.settings.Settings
 import paige.navic.data.models.settings.enums.PlayerBackgroundStyle
 import paige.navic.data.models.settings.enums.ToolbarPosition
 import paige.navic.ui.components.common.BlendBackground
-import paige.navic.ui.screens.player.components.controls.PlayerArtworkPager
-import paige.navic.ui.screens.player.components.rows.PlayerControlsRow
+import paige.navic.ui.screens.nowPlaying.components.controls.NowPlayingArtworkPager
+import paige.navic.ui.screens.nowPlaying.components.rows.NowPlayingControlsRow
 import paige.navic.utils.fadeFromTop
 import paige.navic.utils.rememberTrackPainter
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun PlayerScreen() {
+fun NowPlayingScreen() {
 	val player = LocalMediaPlayer.current
 	val backStack = LocalNavStack.current
 
 	val currentScreen = backStack.lastOrNull()
-	val isPlayerCurrent = currentScreen is Screen.Player
+	val isPlayerCurrent = currentScreen is Screen.NowPlaying
 
 	val playerState by player.uiState.collectAsState()
 	val track = playerState.currentTrack
@@ -78,11 +78,11 @@ fun PlayerScreen() {
 					horizontalArrangement = Arrangement.SpaceEvenly,
 					verticalAlignment = Alignment.CenterVertically
 				) {
-					PlayerArtworkPager(
+					NowPlayingArtworkPager(
 						modifier = Modifier.weight(1f).fillMaxHeight(),
 						isLandscape = true
 					)
-					PlayerControlsRow(
+					NowPlayingControlsRow(
 						modifier = Modifier.weight(1f).fillMaxHeight(),
 						isLandscape = true
 					)
@@ -93,11 +93,11 @@ fun PlayerScreen() {
 					horizontalAlignment = Alignment.CenterHorizontally,
 					verticalArrangement = Arrangement.Center
 				) {
-					PlayerArtworkPager(
+					NowPlayingArtworkPager(
 						modifier = Modifier.weight(1f).fillMaxWidth(),
 						isLandscape = false
 					)
-					PlayerControlsRow(
+					NowPlayingControlsRow(
 						modifier = Modifier.weight(1f),
 						isLandscape = false
 					)

@@ -1,4 +1,4 @@
-package paige.navic.ui.screens.player.components
+package paige.navic.ui.screens.nowPlaying.components
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Box
@@ -22,7 +22,7 @@ import paige.navic.icons.filled.Note
 import paige.navic.ui.components.common.CoverArt
 
 @Composable
-fun PlayerArtwork(
+fun NowPlayingArtwork(
 	modifier: Modifier = Modifier,
 	isLandscape: Boolean,
 	track: Song
