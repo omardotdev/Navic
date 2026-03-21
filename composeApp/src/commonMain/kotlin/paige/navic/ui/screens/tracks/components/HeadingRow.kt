@@ -34,9 +34,7 @@ import paige.navic.ui.theme.defaultFont
 @Composable
 fun TracksScreenHeadingRow(
 	partialTracks: SongCollection,
-	tab: String,
-	listState: LazyListState,
-	sharedTransitionScope: SharedTransitionScope
+	tab: String
 ) {
 	val backStack = LocalNavStack.current
 	with(LocalSharedTransitionScope.current) {
@@ -60,17 +58,11 @@ fun TracksScreenHeadingRow(
 		)
 		Spacer(Modifier.height(10.dp))
 		Column(horizontalAlignment = Alignment.CenterHorizontally) {
-			with(sharedTransitionScope) {
-				Text(
-					partialTracks.name,
-					modifier = Modifier.sharedElementWithCallerManagedVisibility(
-						sharedContentState = rememberSharedContentState("name"),
-						visible = !listState.canScrollBackward
-					),
-					style = MaterialTheme.typography.headlineSmall,
-					textAlign = TextAlign.Center
-				)
-			}
+			Text(
+				partialTracks.name,
+				style = MaterialTheme.typography.headlineSmall,
+				textAlign = TextAlign.Center
+			)
 			val subtitle = when (partialTracks) {
 				is Album -> partialTracks.artistName
 				is Playlist -> partialTracks.comment

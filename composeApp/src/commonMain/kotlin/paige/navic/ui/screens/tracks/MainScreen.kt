@@ -15,6 +15,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -67,104 +68,105 @@ fun TracksScreen(
 	val starredState by viewModel.starredState.collectAsState()
 	val artistState by viewModel.artistState.collectAsState()
 
-	SharedTransitionLayout {
-		Scaffold(
-			topBar = {
-				TracksScreenTopBar(
-					albumInfoState = albumInfoState,
-					tracks = tracks,
-					sharedTransitionScope = this@SharedTransitionLayout,
-					listState = viewModel.listState,
-					onSetShareId = { shareId = it }
-				)
-			},
-			bottomBar = {
-				if (Settings.shared.bottomBarVisibilityMode == BottomBarVisibilityMode.AllScreens) {
-					RootBottomBar(scrolled = viewModel.listState.lastScrolledForward)
-				}
+	val scrolled by remember {
+		derivedStateOf {
+			viewModel.listState.firstVisibleItemIndex >= 1
+		}
+	}
+
+	Scaffold(
+		topBar = {
+			TracksScreenTopBar(
+				albumInfoState = albumInfoState,
+				tracks = tracks,
+				scrolled = scrolled,
+				onSetShareId = { shareId = it }
+			)
+		},
+		bottomBar = {
+			if (Settings.shared.bottomBarVisibilityMode == BottomBarVisibilityMode.AllScreens) {
+				RootBottomBar(scrolled = viewModel.listState.lastScrolledForward)
 			}
-		) { contentPadding ->
-			PullToRefreshBox(
+		}
+	) { contentPadding ->
+		PullToRefreshBox(
+			modifier = Modifier
+				.padding(top = contentPadding.calculateTopPadding())
+				.background(MaterialTheme.colorScheme.surface),
+			isRefreshing = tracks is UiState.Loading
+				|| (artistState is UiState.Loading && partialTracks is Album),
+			onRefresh = {
+				viewModel.refreshTracks()
+				viewModel.refreshArtist()
+			}
+		) {
+			LazyColumn(
 				modifier = Modifier
-					.padding(top = contentPadding.calculateTopPadding())
-					.background(MaterialTheme.colorScheme.surface),
-				isRefreshing = tracks is UiState.Loading
-					|| (artistState is UiState.Loading && partialTracks is Album),
-				onRefresh = {
-					viewModel.refreshTracks()
-					viewModel.refreshArtist()
-				}
+					.background(MaterialTheme.colorScheme.surface)
+					.fillMaxSize()
+					.fadeFromTop(),
+				horizontalAlignment = Alignment.CenterHorizontally,
+				contentPadding = contentPadding.withoutTop() + PaddingValues(
+					top = 16.dp
+				),
+				state = viewModel.listState
 			) {
-				LazyColumn(
-					modifier = Modifier
-						.background(MaterialTheme.colorScheme.surface)
-						.fillMaxSize()
-						.fadeFromTop(),
-					horizontalAlignment = Alignment.CenterHorizontally,
-					contentPadding = contentPadding.withoutTop() + PaddingValues(
-						top = 16.dp
-					),
-					state = viewModel.listState
-				) {
-					item {
-						TracksScreenHeadingRow(
-							partialTracks = partialTracks,
-							tab = tab,
-							listState = viewModel.listState,
-							sharedTransitionScope = this@SharedTransitionLayout
-						)
-					}
-
-					val error = (tracks as? UiState.Error)
-					val tracks = (tracks as? UiState.Success)?.data
-					if (error != null) {
-						item { ErrorBox(error) }
-						return@LazyColumn
-					}
-					if (tracks == null) {
-						tracksScreenTrackRowPlaceholder(partialTracks.songCount)
-						return@LazyColumn
-					}
-
-					item { TracksScreenHeadingRowButtons(tracks) }
-
-					itemsIndexed(tracks.songs) { index, track ->
-						Box {
-							TracksScreenTrackRow(
-								track = track,
-								index = index,
-								count = tracks.songs.count(),
-								onClick = {
-									player.clearQueue()
-									player.addToQueue(tracks)
-									player.playAt(index)
-								},
-								onLongClick = {
-									viewModel.selectTrack(track, index)
-								}
-							)
-							TrackRowDropdown(
-								expanded = selection == track && selectedIndex == index,
-								onDismissRequest = { viewModel.clearSelection() },
-								onRemoveStar = { viewModel.unstarSelectedTrack() },
-								onAddStar = { viewModel.starSelectedTrack() },
-								onShare = { shareId = track.id },
-								tracks = tracks,
-								track = track,
-								onRemoveFromPlaylist = { viewModel.removeFromPlaylist() },
-								starredState = starredState
-							)
-						}
-					}
-
-					item { TracksScreenFooterRow(partialTracks) }
-
-					tracksScreenMoreByArtistRow(
+				item {
+					TracksScreenHeadingRow(
 						partialTracks = partialTracks,
-						artistState = artistState,
 						tab = tab
 					)
 				}
+
+				val error = (tracks as? UiState.Error)
+				val tracks = (tracks as? UiState.Success)?.data
+				if (error != null) {
+					item { ErrorBox(error) }
+					return@LazyColumn
+				}
+				if (tracks == null) {
+					tracksScreenTrackRowPlaceholder(partialTracks.songCount)
+					return@LazyColumn
+				}
+
+				item { TracksScreenHeadingRowButtons(tracks) }
+
+				itemsIndexed(tracks.songs) { index, track ->
+					Box {
+						TracksScreenTrackRow(
+							track = track,
+							index = index,
+							count = tracks.songs.count(),
+							onClick = {
+								player.clearQueue()
+								player.addToQueue(tracks)
+								player.playAt(index)
+							},
+							onLongClick = {
+								viewModel.selectTrack(track, index)
+							}
+						)
+						TrackRowDropdown(
+							expanded = selection == track && selectedIndex == index,
+							onDismissRequest = { viewModel.clearSelection() },
+							onRemoveStar = { viewModel.unstarSelectedTrack() },
+							onAddStar = { viewModel.starSelectedTrack() },
+							onShare = { shareId = track.id },
+							tracks = tracks,
+							track = track,
+							onRemoveFromPlaylist = { viewModel.removeFromPlaylist() },
+							starredState = starredState
+						)
+					}
+				}
+
+				item { TracksScreenFooterRow(partialTracks) }
+
+				tracksScreenMoreByArtistRow(
+					partialTracks = partialTracks,
+					artistState = artistState,
+					tab = tab
+				)
 			}
 		}
 	}
