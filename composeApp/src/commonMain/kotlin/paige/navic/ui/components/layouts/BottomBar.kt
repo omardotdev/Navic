@@ -78,7 +78,7 @@ private enum class NavItem(
 		label = Res.string.title_playlists
 	),
 	ARTISTS(
-		destination = Screen.Artists(),
+		destination = Screen.ArtistList(),
 		icon = Icons.Filled.Artist,
 		iconUnselected = Icons.Outlined.Artist,
 		label = Res.string.title_artists

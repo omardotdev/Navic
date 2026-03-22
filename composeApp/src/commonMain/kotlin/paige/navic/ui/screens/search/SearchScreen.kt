@@ -63,12 +63,12 @@ import paige.navic.ui.components.layouts.RootBottomBar
 import paige.navic.ui.components.layouts.artGridPlaceholder
 import paige.navic.ui.components.layouts.horizontalSection
 import paige.navic.ui.screens.AlbumsScreenItem
-import paige.navic.ui.screens.ArtistsScreenItem
+import paige.navic.ui.screens.artist.ArtistsScreenItem
 import paige.navic.ui.screens.search.components.SearchScreenChips
 import paige.navic.ui.screens.search.components.SearchScreenTopBar
 import paige.navic.ui.screens.search.viewmodels.SearchViewModel
 import paige.navic.ui.viewmodels.AlbumsViewModel
-import paige.navic.ui.viewmodels.ArtistsViewModel
+import paige.navic.ui.screens.artist.viewmodels.ArtistListViewModel
 import paige.navic.utils.LocalBottomBarScrollManager
 import paige.navic.utils.UiState
 
@@ -92,7 +92,7 @@ fun SearchScreen(
 	val ctx = LocalCtx.current
 	val player = LocalMediaPlayer.current
 
-	val artistsViewModel = viewModel { ArtistsViewModel() }
+	val artistListViewModel = viewModel { ArtistListViewModel() }
 	val albumsViewModel = viewModel { AlbumsViewModel(AlbumListType.AlphabeticalByName) }
 
 	var selectedCategory by remember { mutableStateOf(SearchCategory.ALL) }
@@ -209,7 +209,7 @@ fun SearchScreen(
 
 							horizontalSection(
 								title = Res.string.title_artists,
-								destination = Screen.Artists(true),
+								destination = Screen.ArtistList(true),
 								state = UiState.Success(artists),
 								key = { it.id },
 								seeAll = false
@@ -218,7 +218,7 @@ fun SearchScreen(
 									modifier = Modifier.animateItem(fadeInSpec = null)
 										.width(150.dp),
 									artist = artist,
-									viewModel = artistsViewModel,
+									viewModel = artistListViewModel,
 									tab = "search"
 								)
 							}

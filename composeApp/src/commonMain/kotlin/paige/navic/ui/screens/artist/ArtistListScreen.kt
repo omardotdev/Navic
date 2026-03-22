@@ -1,4 +1,4 @@
-package paige.navic.ui.screens
+package paige.navic.ui.screens.artist
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
@@ -56,16 +56,16 @@ import paige.navic.ui.components.layouts.NestedTopBar
 import paige.navic.ui.components.layouts.RootBottomBar
 import paige.navic.ui.components.layouts.RootTopBar
 import paige.navic.ui.components.layouts.artGridPlaceholder
-import paige.navic.ui.viewmodels.ArtistsViewModel
+import paige.navic.ui.screens.artist.viewmodels.ArtistListViewModel
 import paige.navic.utils.LocalBottomBarScrollManager
 import paige.navic.utils.UiState
 import paige.navic.utils.withoutTop
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ArtistsScreen(
+fun ArtistListScreen(
 	nested: Boolean = false,
-	viewModel: ArtistsViewModel = viewModel { ArtistsViewModel() }
+	viewModel: ArtistListViewModel = viewModel { ArtistListViewModel() }
 ) {
 	val artistsState by viewModel.artistsState.collectAsState()
 	val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -191,7 +191,7 @@ fun ArtistsScreenItem(
 	modifier: Modifier = Modifier,
 	artist: Artist,
 	tab: String,
-	viewModel: ArtistsViewModel
+	viewModel: ArtistListViewModel
 ) {
 	val ctx = LocalCtx.current
 	val backStack = LocalNavStack.current
@@ -201,7 +201,7 @@ fun ArtistsScreenItem(
 		ArtGridItem(
 			onClick = {
 				ctx.clickSound()
-				backStack.add(Screen.Artist(artist.id))
+				backStack.add(Screen.ArtistDetail(artist.id))
 			},
 			onLongClick = { viewModel.selectArtist(artist) },
 			coverArtId = artist.coverArtId,
@@ -246,7 +246,7 @@ fun ArtistsScreenItem(
 
 fun LazyGridScope.artistsScreenItems(
 	data: List<Artist>,
-	viewModel: ArtistsViewModel,
+	viewModel: ArtistListViewModel,
 	tab: String
 ) {
 	items(data, { it.id }) { album ->

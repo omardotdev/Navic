@@ -1,10 +1,9 @@
-package paige.navic.ui.viewmodels
+package paige.navic.ui.screens.artist.viewmodels
 
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.zt64.subsonic.api.model.Artist
-import dev.zt64.subsonic.api.model.Artists
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,7 +12,7 @@ import paige.navic.data.repositories.ArtistsRepository
 import paige.navic.data.session.SessionManager
 import paige.navic.utils.UiState
 
-class ArtistsViewModel(
+class ArtistListViewModel(
 	private val repository: ArtistsRepository = ArtistsRepository()
 ) : ViewModel() {
 	private val _artistsState = MutableStateFlow<UiState<List<Artist>>>(UiState.Loading)

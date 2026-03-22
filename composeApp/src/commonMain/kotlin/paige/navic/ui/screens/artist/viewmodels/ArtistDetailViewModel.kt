@@ -1,4 +1,4 @@
-package paige.navic.ui.viewmodels
+package paige.navic.ui.screens.artist.viewmodels
 
 import androidx.compose.foundation.ScrollState
 import androidx.lifecycle.ViewModel
@@ -25,7 +25,7 @@ data class ArtistState(
 	val similarArtists: List<Artist>
 )
 
-class ArtistViewModel(
+class ArtistDetailViewModel(
 	private val artistId: String
 ) : ViewModel() {
 	private val _artistState = MutableStateFlow<UiState<ArtistState>>(UiState.Loading)

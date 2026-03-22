@@ -70,7 +70,7 @@ fun NowPlayingInfoRow() {
 				modifier = Modifier.clickable(track != null) {
 					track?.artistId?.let { id ->
 						backStack.remove(Screen.NowPlaying)
-						backStack.add(Screen.Artist(id))
+						backStack.add(Screen.ArtistDetail(id))
 					}
 				},
 				style = MaterialTheme.typography.bodyMedium

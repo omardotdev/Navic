@@ -67,10 +67,11 @@ import paige.navic.ui.components.dialogs.ShareDialog
 import paige.navic.ui.components.layouts.RootBottomBar
 import paige.navic.ui.components.layouts.RootTopBar
 import paige.navic.ui.components.layouts.horizontalSection
+import paige.navic.ui.screens.artist.ArtistsScreenItem
 import paige.navic.ui.screens.genres.GenreCard
 import paige.navic.ui.theme.defaultFont
 import paige.navic.ui.viewmodels.AlbumsViewModel
-import paige.navic.ui.viewmodels.ArtistsViewModel
+import paige.navic.ui.screens.artist.viewmodels.ArtistListViewModel
 import paige.navic.ui.viewmodels.GenresViewModel
 import paige.navic.ui.viewmodels.PlaylistsViewModel
 import paige.navic.utils.LocalBottomBarScrollManager
@@ -85,12 +86,12 @@ fun LibraryScreen(
 		AlbumsViewModel(AlbumListType.Recent)
 	},
 	playlistsViewModel: PlaylistsViewModel = viewModel { PlaylistsViewModel() },
-	artistsViewModel: ArtistsViewModel = viewModel { ArtistsViewModel() },
+	artistListViewModel: ArtistListViewModel = viewModel { ArtistListViewModel() },
 	genresViewModel: GenresViewModel = viewModel { GenresViewModel() }
 ) {
 	val recentsState by albumsViewModel.albumsState.collectAsState()
 	val playlistsState by playlistsViewModel.playlistsState.collectAsState()
-	val artistsState by artistsViewModel.artistsState.collectAsState()
+	val artistsState by artistListViewModel.artistsState.collectAsState()
 	val genresState by genresViewModel.genresState.collectAsState()
 
 	val gridState = albumsViewModel.gridState
@@ -128,7 +129,7 @@ fun LibraryScreen(
 				if (!isLoggedIn) return@PullToRefreshBox
 				albumsViewModel.refreshAlbums()
 				playlistsViewModel.refreshPlaylists()
-				artistsViewModel.refreshArtists()
+				artistListViewModel.refreshArtists()
 				genresViewModel.refreshGenres()
 			}
 		) {
@@ -207,7 +208,7 @@ fun LibraryScreen(
 
 					horizontalSection(
 						title = Res.string.title_artists,
-						destination = Screen.Artists(true),
+						destination = Screen.ArtistList(true),
 						state = flatArtistsState,
 						key = { it.id },
 						seeAll = true
@@ -215,7 +216,7 @@ fun LibraryScreen(
 						ArtistsScreenItem(
 							modifier = Modifier.animateItem(fadeInSpec = null).width(150.dp),
 							artist = artist,
-							viewModel = artistsViewModel,
+							viewModel = artistListViewModel,
 							tab = "library"
 						)
 					}

@@ -19,7 +19,7 @@ sealed interface Screen : NavKey {
 		val nested: Boolean = false
 	) : Screen
 	@Serializable
-	data class Artists(
+	data class ArtistList(
 		val nested: Boolean = false
 	) : Screen
 	@Serializable
@@ -42,7 +42,7 @@ sealed interface Screen : NavKey {
 		val nested: Boolean = false
 	) : Screen
 	@Serializable data object Shares : Screen
-	@Serializable data class Artist(val artist: String) : Screen
+	@Serializable data class ArtistDetail(val artist: String) : Screen
 
 	// settings
 	@Serializable

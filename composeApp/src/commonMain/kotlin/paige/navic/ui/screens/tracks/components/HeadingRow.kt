@@ -1,11 +1,6 @@
 package paige.navic.ui.screens.tracks.components
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -83,7 +78,7 @@ fun TracksScreenHeadingRow(
 					color = MaterialTheme.colorScheme.primary,
 					modifier = Modifier.clickable(partialTracks is Album) {
 						(partialTracks as? Album)?.artistId?.let { id ->
-							backStack.add(Screen.Artist(id))
+							backStack.add(Screen.ArtistDetail(id))
 						}
 					},
 					style = MaterialTheme.typography.bodyMedium,
