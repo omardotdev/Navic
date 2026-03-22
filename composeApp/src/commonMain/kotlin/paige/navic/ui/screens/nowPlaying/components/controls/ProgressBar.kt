@@ -17,7 +17,7 @@ import ir.mahozad.multiplatform.wavyslider.material3.WaveAnimationSpecs
 import ir.mahozad.multiplatform.wavyslider.material3.WavySlider
 import paige.navic.LocalMediaPlayer
 import paige.navic.data.models.settings.Settings
-import paige.navic.data.models.settings.enums.PlayerSliderStyle
+import paige.navic.data.models.settings.enums.NowPlayingSliderStyle
 
 @Composable
 fun NowPlayingProgressBar() {
@@ -25,7 +25,7 @@ fun NowPlayingProgressBar() {
 	val playerState by player.uiState.collectAsState()
 	val waveHeight by animateDpAsState(
 		if (!playerState.isPaused
-			&& Settings.shared.playerSliderStyle == PlayerSliderStyle.Squiggly)
+			&& Settings.shared.nowPlayingSliderStyle == NowPlayingSliderStyle.Squiggly)
 			6.dp
 		else 0.dp
 	)

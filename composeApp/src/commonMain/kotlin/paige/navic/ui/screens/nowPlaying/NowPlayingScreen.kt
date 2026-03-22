@@ -24,7 +24,7 @@ import paige.navic.LocalMediaPlayer
 import paige.navic.LocalNavStack
 import paige.navic.data.models.Screen
 import paige.navic.data.models.settings.Settings
-import paige.navic.data.models.settings.enums.PlayerBackgroundStyle
+import paige.navic.data.models.settings.enums.NowPlayingBackgroundStyle
 import paige.navic.data.models.settings.enums.ToolbarPosition
 import paige.navic.ui.components.common.BlendBackground
 import paige.navic.ui.screens.nowPlaying.components.controls.NowPlayingArtworkPager
@@ -47,9 +47,9 @@ fun NowPlayingScreen() {
 	val sharedPainter = rememberTrackPainter(track?.id, track?.coverArtId)
 
 	Box(Modifier.fillMaxSize()) {
-		when (Settings.shared.playerBackgroundStyle) {
-			PlayerBackgroundStyle.Static -> Unit
-			PlayerBackgroundStyle.Dynamic -> {
+		when (Settings.shared.nowPlayingBackgroundStyle) {
+			NowPlayingBackgroundStyle.Static -> Unit
+			NowPlayingBackgroundStyle.Dynamic -> {
 				BlendBackground(
 					painter = sharedPainter,
 					isPaused = playerState.isPaused
