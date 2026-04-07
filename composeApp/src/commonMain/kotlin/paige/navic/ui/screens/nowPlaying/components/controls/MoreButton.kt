@@ -113,7 +113,7 @@ fun NowPlayingMoreButton() {
 					track?.id?.let { songId ->
 						expanded = false
 						backStack.remove(Screen.NowPlaying)
-						backStack.add(Screen.TrackDetail(songId))
+						backStack.add(Screen.SongDetail(songId))
 					}
 				},
 				text = { Text(stringResource(Res.string.action_track_info)) },

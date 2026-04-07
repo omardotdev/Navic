@@ -52,7 +52,7 @@ sealed interface Screen : NavKey {
 		val collectionId: String,
 		val tab: String
 	) : Screen
-	@Immutable @Serializable data class TrackDetail(val songId: String) : Screen
+	@Immutable @Serializable data class SongDetail(val songId: String) : Screen
 	@Immutable @Serializable data class Search(
 		val nested: Boolean = false
 	) : Screen

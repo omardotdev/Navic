@@ -1,4 +1,4 @@
-package paige.navic.ui.screens.track.viewmodels
+package paige.navic.ui.screens.song.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,7 +9,7 @@ import paige.navic.domain.models.DomainSong
 import paige.navic.domain.repositories.TrackRepository
 import paige.navic.utils.UiState
 
-class TrackDetailViewModel(
+class SongDetailViewModel(
 	songId: String,
 	private val repository: TrackRepository
 ) : ViewModel() {

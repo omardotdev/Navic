@@ -89,7 +89,7 @@ import paige.navic.ui.screens.settings.SettingsNowPlayingScreen
 import paige.navic.ui.screens.settings.SettingsPlaybackScreen
 import paige.navic.ui.screens.settings.SettingsScreen
 import paige.navic.ui.screens.song.SongListScreen
-import paige.navic.ui.screens.track.TrackDetailScreen
+import paige.navic.ui.screens.song.SongDetailScreen
 import paige.navic.ui.screens.track.TrackListScreen
 import paige.navic.ui.theme.NavicTheme
 import paige.navic.utils.BottomBarScrollManager
@@ -262,8 +262,8 @@ private fun entryProvider(
 		entry<Screen.TrackList>(metadata = detailPane("root")) { key ->
 			TrackListScreen(key.collectionId, key.tab)
 		}
-		entry<Screen.TrackDetail>(metadata = detailPane("root")) { key ->
-			TrackDetailScreen(key.songId)
+		entry<Screen.SongDetail>(metadata = detailPane("root")) { key ->
+			SongDetailScreen(key.songId)
 		}
 		entry<Screen.Search>(metadata = navtabMetadata) { key ->
 			SearchScreen(key.nested)
