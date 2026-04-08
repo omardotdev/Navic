@@ -2,22 +2,10 @@ package paige.navic.utils
 
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
-import paige.navic.domain.models.DomainPlaylistListType
 import paige.navic.domain.models.DomainAlbum
 import paige.navic.domain.models.DomainAlbumListType
-import paige.navic.domain.models.DomainPlaylist
 import paige.navic.domain.models.DomainSong
 import paige.navic.domain.models.DomainSongListType
-
-fun List<DomainPlaylist>.sortedByMode(mode: DomainPlaylistListType, reversed: Boolean): List<DomainPlaylist> {
-	val playlists = when (mode) {
-		DomainPlaylistListType.Name -> sortedBy { it.name.lowercase() }
-		DomainPlaylistListType.DateAdded -> sortedBy { it.createdAt }
-		DomainPlaylistListType.Duration -> sortedBy { it.duration }
-		DomainPlaylistListType.Random -> shuffled()
-	}
-	return if (reversed) playlists.reversed() else playlists
-}
 
 fun ImmutableList<DomainSong>.sortedByListType(listType: DomainSongListType): ImmutableList<DomainSong> {
 	return when (listType) {

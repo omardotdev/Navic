@@ -20,7 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import navic.composeapp.generated.resources.Res
-import navic.composeapp.generated.resources.info_no_tracks
+import navic.composeapp.generated.resources.info_no_songs
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -181,7 +181,7 @@ fun CollectionDetailScreen(
 					item {
 						ContentUnavailable(
 							icon = Icons.Outlined.Note,
-							label = stringResource(Res.string.info_no_tracks)
+							label = stringResource(Res.string.info_no_songs)
 						)
 					}
 				}
