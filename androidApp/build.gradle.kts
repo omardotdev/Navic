@@ -108,6 +108,7 @@ extensions.configure<ApplicationAndroidComponentsExtension> {
 dependencies {
 	implementation(projects.composeApp)
 	implementation(libs.androidx.activity.compose)
+	implementation(libs.cmp.material3)
 	implementation(libs.koin.android)
 	implementation(libs.koin.core)
 	implementation(libs.bundles.glance)
