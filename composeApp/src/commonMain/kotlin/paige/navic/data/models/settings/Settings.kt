@@ -17,6 +17,7 @@ import paige.navic.data.models.settings.enums.NavigationBarStyle
 import paige.navic.data.models.settings.enums.NowPlayingBackgroundStyle
 import paige.navic.data.models.settings.enums.NowPlayingSliderStyle
 import paige.navic.data.models.settings.enums.OfflineMode
+import paige.navic.data.models.settings.enums.StreamingQuality
 import paige.navic.data.models.settings.enums.Theme
 import paige.navic.data.models.settings.enums.ThemeMode
 import paige.navic.data.models.settings.enums.ToolbarPosition
@@ -47,6 +48,8 @@ class Settings(
 	var replayGain by preference(false)
 	var gaplessPlayback by preference(true)
 	var audioOffload by preference(false)
+	var streamingQualityWifi by preference(StreamingQuality.High)
+	var streamingQualityCellular by preference(StreamingQuality.Medium)
 	var nowPlayingSliderStyle by preference(NowPlayingSliderStyle.Squiggly)
 	var customHeaders by preference("")
 	var checkForUpdates by preference(true)
