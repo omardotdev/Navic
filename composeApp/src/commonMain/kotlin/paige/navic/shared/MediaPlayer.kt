@@ -71,6 +71,7 @@ abstract class MediaPlayerViewModel(
 	abstract fun toggleShuffle()
 	abstract fun toggleRepeat()
 	abstract fun shufflePlay(collection: DomainSongCollection)
+	abstract fun setPlaybackSpeed(value: Float)
 
 	fun togglePlay() {
 		if (!_uiState.value.isPaused) {

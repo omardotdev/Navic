@@ -6,17 +6,25 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.plus
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -25,7 +33,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import navic.composeapp.generated.resources.Res
 import navic.composeapp.generated.resources.action_lyrics
 import navic.composeapp.generated.resources.action_navigate_back
+import navic.composeapp.generated.resources.action_ok
 import navic.composeapp.generated.resources.action_queue
+import navic.composeapp.generated.resources.change_playback_speed
+import navic.composeapp.generated.resources.playback_speed_dialog_error
+import navic.composeapp.generated.resources.playback_speed_dialog_label
+import navic.composeapp.generated.resources.playback_speed_limit
 import navic.composeapp.generated.resources.title_now_playing
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -38,8 +51,11 @@ import paige.navic.icons.Icons
 import paige.navic.icons.outlined.KeyboardArrowDown
 import paige.navic.icons.outlined.List
 import paige.navic.icons.outlined.Lyrics
+import paige.navic.icons.outlined.Speed
 import paige.navic.shared.MediaPlayerViewModel
 import paige.navic.ui.components.common.BlendBackground
+import paige.navic.ui.components.common.FormButton
+import paige.navic.ui.components.dialogs.FormDialog
 import paige.navic.ui.components.layouts.SheetScaffold
 import paige.navic.ui.components.layouts.TopBarButton
 import paige.navic.ui.components.toolbars.SheetActionButton
@@ -64,6 +80,14 @@ fun NowPlayingScreen() {
 	val viewModel = koinViewModel<NowPlayingViewModel>()
 	val songIsStarred by viewModel.songIsStarred.collectAsStateWithLifecycle()
 	val songRating by viewModel.songRating.collectAsStateWithLifecycle()
+	var showDialog by remember { mutableStateOf(false) }
+
+	if (showDialog) {
+		PlaybackSpeedDialog(
+			onDismissRequest = { showDialog = false },
+			player = player
+		)
+	}
 
 	SheetScaffold(
 		toolbar = { windowInsets ->
@@ -95,6 +119,15 @@ fun NowPlayingScreen() {
 						icon = Icons.Outlined.List,
 						contentDescription = stringResource(Res.string.action_queue),
 						onClick = { backStack.add(Screen.Queue) },
+						isEndRounded = false
+					)
+
+					SheetActionButton(
+						icon = Icons.Outlined.Speed,
+						contentDescription = stringResource(Res.string.change_playback_speed),
+						onClick = {
+							showDialog = true
+						},
 						isEndRounded = true
 					)
 				}
@@ -165,4 +198,51 @@ fun NowPlayingScreen() {
 			}
 		}
 	}
+}
+
+@Composable
+fun PlaybackSpeedDialog(
+	onDismissRequest: () -> Unit,
+	player: MediaPlayerViewModel
+) {
+	val textFieldState = rememberTextFieldState()
+	var showError by remember { mutableStateOf(false) }
+
+	FormDialog(
+		title = {
+			Text(text = stringResource(Res.string.change_playback_speed))
+		},
+		content = {
+			Text(stringResource(Res.string.playback_speed_limit))
+
+			Spacer(Modifier.height(8.dp))
+
+			OutlinedTextField(
+				state = textFieldState,
+				lineLimits = TextFieldLineLimits.SingleLine,
+				label = {
+					if (!showError) stringResource(Res.string.playback_speed_dialog_label) else stringResource(Res.string.playback_speed_dialog_error)
+				},
+				isError = showError
+			)
+		},
+		onDismissRequest = {
+			onDismissRequest()
+		},
+		buttons = {
+			FormButton(onClick = {
+				val text = textFieldState.text.toString().toFloatOrNull()
+
+				when {
+					text == null || text > 5.0 || text > 0.1 -> showError = true
+					else -> {
+						player.setPlaybackSpeed(textFieldState.text.toString().toFloat())
+						onDismissRequest()
+					}
+				}
+			}) {
+				Text(stringResource(Res.string.action_ok))
+			}
+		},
+	)
 }

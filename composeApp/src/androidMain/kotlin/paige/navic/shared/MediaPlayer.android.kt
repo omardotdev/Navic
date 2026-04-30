@@ -712,6 +712,12 @@ class AndroidMediaPlayerViewModel(
 		}
 	}
 
+	override fun setPlaybackSpeed(value: Float) {
+		viewModelScope.launch {
+			controller?.setPlaybackSpeed(value)
+		}
+	}
+
 	private fun DomainSong.toMediaItem(): MediaItem {
 		val metadata = MediaMetadata.Builder()
 			.setTitle(title)

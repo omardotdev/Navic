@@ -31,6 +31,7 @@ import platform.AVFoundation.play
 import platform.AVFoundation.removeTimeObserver
 import platform.AVFoundation.replaceCurrentItemWithPlayerItem
 import platform.AVFoundation.seekToTime
+import platform.AVFoundation.setRate
 import platform.CoreGraphics.CGSizeMake
 import platform.CoreMedia.CMTimeGetSeconds
 import platform.CoreMedia.CMTimeMake
@@ -378,6 +379,10 @@ class IOSMediaPlayerViewModel(
 			)
 		}
 		playAt(0)
+	}
+
+	override fun setPlaybackSpeed(value: Float) {
+		player.setRate(value)
 	}
 
 	override fun seek(normalized: Float) {
