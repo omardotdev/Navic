@@ -221,7 +221,7 @@ fun PlaybackSpeedDialog(
 				state = textFieldState,
 				lineLimits = TextFieldLineLimits.SingleLine,
 				label = {
-					if (!showError) stringResource(Res.string.playback_speed_dialog_label) else stringResource(Res.string.playback_speed_dialog_error)
+					if (!showError) Text(stringResource(Res.string.playback_speed_dialog_label)) else Text(stringResource(Res.string.playback_speed_dialog_error))
 				},
 				isError = showError
 			)
