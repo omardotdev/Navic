@@ -234,7 +234,7 @@ fun PlaybackSpeedDialog(
 				val text = textFieldState.text.toString().toFloatOrNull()
 
 				when {
-					text == null || text > 5.0 || text > 0.1 -> showError = true
+					text == null || text > 5.0 || text < 0.1 -> showError = true
 					else -> {
 						player.setPlaybackSpeed(textFieldState.text.toString().toFloat())
 						onDismissRequest()
