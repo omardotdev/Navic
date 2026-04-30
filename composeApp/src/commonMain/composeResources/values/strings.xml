@@ -369,7 +369,4 @@
 	<string name="sideloading_warning_link_mask">here.</string>
 
 	<string name="change_playback_speed">Change playback speed</string>
-	<string name="playback_speed_limit">Could be anywhere from 0.1 to 5.0</string>
-	<string name="playback_speed_dialog_label">Playback speed</string>
-	<string name="playback_speed_dialog_error">This isn't a valid number</string>
 </resources>
