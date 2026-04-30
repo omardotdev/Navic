@@ -236,7 +236,7 @@ fun PlaybackSpeedDialog(
 				when {
 					text == null || text > 5.0 || text < 0.1 -> showError = true
 					else -> {
-						player.setPlaybackSpeed(textFieldState.text.toString().toFloat())
+						player.setPlaybackSpeed(text)
 						onDismissRequest()
 					}
 				}
