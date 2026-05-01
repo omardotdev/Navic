@@ -104,7 +104,6 @@ fun NowPlayingScreen() {
 					SheetActionButton(
 						icon = Icons.Outlined.Speed,
 						contentDescription = stringResource(Res.string.change_playback_speed),
-						onClick = { backStack.add(Screen.PlaybackSpeed) },
 						onClick = dropUnlessResumed { backStack.add(Screen.PlaybackSpeed) },
 						isEndRounded = true
 					)
