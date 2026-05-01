@@ -4,12 +4,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
@@ -31,14 +30,13 @@ import com.kyant.capsule.ContinuousRoundedRectangle
 import org.koin.compose.viewmodel.koinViewModel
 import paige.navic.shared.MediaPlayerViewModel
 import paige.navic.utils.rememberDraggableListState
-import kotlin.math.floor
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PlaybackSpeedScreen(
 	player: MediaPlayerViewModel = koinViewModel<MediaPlayerViewModel>(),
 ) {
-	val lazyListState = LazyListState()
+	val lazyListState = rememberLazyListState()
 	val haptic = LocalHapticFeedback.current
 
 	val draggableState = rememberDraggableListState(lazyListState) { from, to ->
@@ -58,7 +56,7 @@ fun PlaybackSpeedScreen(
 	LazyColumn(
 		modifier = Modifier
 			.padding(horizontal = 12.dp, vertical = 4.dp)
-			.fillMaxSize()
+			.fillMaxWidth()
 			.clip(ContinuousRoundedRectangle(topStart = 16.dp, topEnd = 16.dp)),
 		state = draggableState.listState
 	) {
@@ -70,10 +68,7 @@ fun PlaybackSpeedScreen(
 				Slider(
 					value = selectedSpeed,
 					onValueChange = {
-						val intValue = floor(it).toInt()
-						val decPart = floor((it - intValue) * 100).toInt()
-						val value = "$intValue.$decPart".toFloat()
-
+						val value = (it * 100).toInt() / 100f
 						selectedSpeed = value
 						player.setPlaybackSpeed(selectedSpeed)
 					},
@@ -87,24 +82,25 @@ fun PlaybackSpeedScreen(
 
 		item {
 			Column(
-				modifier = Modifier.fillMaxWidth(),
+				modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
 				horizontalAlignment = Alignment.CenterHorizontally,
 				verticalArrangement = Arrangement.Center
 			) {
 				Text("${selectedSpeed}x")
 
 				Row(
+					modifier = Modifier.fillMaxWidth(),
 					verticalAlignment = Alignment.CenterVertically,
 					horizontalArrangement = Arrangement.Center
 				) {
-					(0..4).forEach { button ->
+					playbackSpeeds.forEach { speed ->
 						SurfaceButton(
 							modifier = Modifier.weight(1f),
 							onClick = {
-								selectedSpeed = playbackSpeeds[button]
+								selectedSpeed = speed
 								player.setPlaybackSpeed(selectedSpeed)
 							},
-							text = "${playbackSpeeds[button]}"
+							text = "$speed"
 						)
 					}
 				}

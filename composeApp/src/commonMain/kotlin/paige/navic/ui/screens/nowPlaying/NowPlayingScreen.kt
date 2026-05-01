@@ -59,6 +59,7 @@ fun NowPlayingScreen() {
 	val currentScreen = backStack.lastOrNull()
 	val isPlayerCurrent = currentScreen is Screen.NowPlaying
 		|| currentScreen is Screen.Queue
+		|| currentScreen is Screen.PlaybackSpeed
 
 	val playerState by player.uiState.collectAsStateWithLifecycle()
 	val song = playerState.currentSong
@@ -99,13 +100,10 @@ fun NowPlayingScreen() {
 						onClick = { backStack.add(Screen.Queue) },
 						isEndRounded = false
 					)
-
 					SheetActionButton(
 						icon = Icons.Outlined.Speed,
 						contentDescription = stringResource(Res.string.change_playback_speed),
-						onClick = {
-							backStack.add(Screen.PlaybackSpeed)
-						},
+						onClick = { backStack.add(Screen.PlaybackSpeed) },
 						isEndRounded = true
 					)
 				}
