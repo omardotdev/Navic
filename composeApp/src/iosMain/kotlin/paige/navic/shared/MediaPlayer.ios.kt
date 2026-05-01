@@ -170,7 +170,7 @@ class IOSMediaPlayerViewModel(
 	override fun playNextSingle(song: DomainSong) {
 		_uiState.update { state ->
 			val newQueue = 
-				if (state.queue == null || state.queue.isEmpty()) 
+				if (state.queue.isEmpty())
 					state.queue + song
 				else
 					state.queue.slice(0..state.currentIndex) + song + state.queue.slice(state.currentIndex+1..state.queue.size-1)
@@ -185,7 +185,7 @@ class IOSMediaPlayerViewModel(
 	override fun playNext(collection: DomainSongCollection) {
 		_uiState.update { state ->
 			val newQueue = 
-				if (state.queue == null || state.queue.isEmpty()) 
+				if (state.queue.isEmpty())
 					state.queue + collection.songs
 				else
 					state.queue.slice(0..state.currentIndex) + collection.songs + state.queue.slice(state.currentIndex+1..state.queue.size-1)
@@ -383,6 +383,7 @@ class IOSMediaPlayerViewModel(
 
 	override fun setPlaybackSpeed(value: Float) {
 		player.setRate(value)
+		_uiState.update { it.copy(playbackSpeed = value) }
 	}
 
 	override fun seek(normalized: Float) {
@@ -463,6 +464,7 @@ class IOSMediaPlayerViewModel(
 
 		val url = getSongUrl(song) ?: return
 		player.replaceCurrentItemWithPlayerItem(AVPlayerItem(url))
+		player.setRate(state.playbackSpeed)
 
 		if (!song.id.startsWith("radio_")) {
 			val durationMs = song.duration.inWholeMilliseconds
