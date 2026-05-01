@@ -28,6 +28,7 @@ import com.kyant.capsule.ContinuousRoundedRectangle
 import org.koin.compose.viewmodel.koinViewModel
 import paige.navic.shared.MediaPlayerViewModel
 import paige.navic.utils.rememberDraggableListState
+import kotlin.math.round
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -66,7 +67,10 @@ fun PlaybackSpeedScreen(
 			) {
 				Slider(
 					value = selectedSpeed,
-					onValueChange = { player.setPlaybackSpeed(it) },
+					onValueChange = { newValue ->
+						val snappedValue = round(newValue * 100) / 100f
+						player.setPlaybackSpeed(snappedValue)
+					},
 					valueRange = 0.5f..2.0f,
 					modifier = Modifier.weight(1f)
 				)
