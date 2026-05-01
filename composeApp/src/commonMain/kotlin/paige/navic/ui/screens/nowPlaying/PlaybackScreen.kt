@@ -16,15 +16,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kyant.capsule.ContinuousCapsule
 import com.kyant.capsule.ContinuousRoundedRectangle
 import org.koin.compose.viewmodel.koinViewModel
@@ -38,13 +36,14 @@ fun PlaybackSpeedScreen(
 ) {
 	val lazyListState = rememberLazyListState()
 	val haptic = LocalHapticFeedback.current
+	val playerState by player.uiState.collectAsStateWithLifecycle()
 
 	val draggableState = rememberDraggableListState(lazyListState) { from, to ->
 		player.moveQueueItem(from, to)
 		haptic.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
 	}
 
-	var selectedSpeed by remember { mutableStateOf(1.0f) }
+	val selectedSpeed = playerState.playbackSpeed
 	val playbackSpeeds = listOf(
 		1.0f,
 		1.25f,
@@ -67,11 +66,7 @@ fun PlaybackSpeedScreen(
 			) {
 				Slider(
 					value = selectedSpeed,
-					onValueChange = {
-						val value = (it * 100).toInt() / 100f
-						selectedSpeed = value
-						player.setPlaybackSpeed(selectedSpeed)
-					},
+					onValueChange = { player.setPlaybackSpeed(it) },
 					valueRange = 0.5f..2.0f,
 					modifier = Modifier.weight(1f)
 				)
@@ -96,10 +91,7 @@ fun PlaybackSpeedScreen(
 					playbackSpeeds.forEach { speed ->
 						SurfaceButton(
 							modifier = Modifier.weight(1f),
-							onClick = {
-								selectedSpeed = speed
-								player.setPlaybackSpeed(selectedSpeed)
-							},
+							onClick = { player.setPlaybackSpeed(speed) },
 							text = "$speed"
 						)
 					}
