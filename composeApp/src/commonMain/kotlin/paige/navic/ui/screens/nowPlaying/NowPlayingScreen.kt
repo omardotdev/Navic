@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.dropUnlessResumed
 import navic.composeapp.generated.resources.Res
 import navic.composeapp.generated.resources.action_lyrics
 import navic.composeapp.generated.resources.action_navigate_back
@@ -91,19 +92,20 @@ fun NowPlayingScreen() {
 					SheetActionButton(
 						icon = Icons.Outlined.Lyrics,
 						contentDescription = stringResource(Res.string.action_lyrics),
-						onClick = { backStack.add(Screen.Lyrics) },
+						onClick = dropUnlessResumed { backStack.add(Screen.Lyrics) },
 						isStartRounded = true
 					)
 					SheetActionButton(
 						icon = Icons.Outlined.List,
 						contentDescription = stringResource(Res.string.action_queue),
-						onClick = { backStack.add(Screen.Queue) },
+						onClick = dropUnlessResumed { backStack.add(Screen.Queue) },
 						isEndRounded = false
 					)
 					SheetActionButton(
 						icon = Icons.Outlined.Speed,
 						contentDescription = stringResource(Res.string.change_playback_speed),
 						onClick = { backStack.add(Screen.PlaybackSpeed) },
+						onClick = dropUnlessResumed { backStack.add(Screen.PlaybackSpeed) },
 						isEndRounded = true
 					)
 				}
